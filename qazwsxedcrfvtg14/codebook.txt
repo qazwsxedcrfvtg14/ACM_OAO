@@ -1,0 +1,1643 @@
+﻿//bit binary indexed tree  //index 1~n
+void insert(int a,int val){
+	while(a<=n){
+		bit[a]+=val;
+		a+=a&-a;
+		}
+}
+int sum(int a){          //query sum [1,a]
+	int ans=0;
+	while(a){
+		ans+=bit[a];
+		a-=a&-a;
+		}
+	return ans;
+}
+
+//線段樹
+int max(int a,int b){return a>b?a:b;}
+void mkt(int idx,int L,int R){
+	if(L==R){tree[idx]=ar[L];return;}
+	int mid=L+R>>1,lidx=idx*2+1;
+	mkt(lidx,L,mid);
+	mkt(lidx+1,mid+1,R);
+	tree[idx]=max(tree[lidx],tree[lidx+1]);
+}
+int qry(int idx,int L,int R,int x,int y){
+	if(y<L||x>R)return -100000;
+	if(L>=x&&R<=y)return tree[idx];
+	int mid=L+R>>1,lidx=idx*2+1;
+	return max(qry(lidx,L,mid,x,y),qry(lidx+1,mid+1,R,x,y));
+}
+mkt(0,0,n-1);
+scanf("%d",&m);
+while(m--){
+	int i,j;
+	scanf("%d%d",&i,&j);
+	if(i>j){int l=i;i=j;j=l;}
+	printf("%d\n",qry(0,0,n-1,i-1,j-1));
+	}
+void make(int n){            //區間最大最小值
+    for(int i=0; i<n;i++)
+        v1[0][i]=ar[i],v2[0][i]=ar[i];
+    for(int i=1;(1<<i)<=n;i++)
+        for(int j=0;j+(1<<i)<=n;j++)
+            v1[i][j]=min(v1[i-1][j],v1[i-1][j+(1<<(i-1))]),v2[i][j]=max(v2[i-1][j],v2[i-1][j+(1<<(i-1))]);
+	return;
+	}
+unsigned int qry(int a,int b){  //查詢區間最大最小值
+    int p = 31 - __builtin_clz(abs(b-a)+1);
+    return max(v2[p][a],v2[p][b-(1<<p)+1])-min(v1[p][a],v1[p][b-(1<<p)+1]);
+	}
+
+//畢氏數特性：
+(m,n)=1
+m^2-n^2, 2mn, m^2+n^2
+
+//最大公因數
+int gcd(int a,int b){
+	int c;
+	while(b!=0){
+		a%=b;
+		c=a;a=b;b=c;
+		}
+	return a;
+	}
+
+//模逆元
+long long int inverse(long long int a, long long int m){ 
+    long long int d = m, x = 0, s = 1, q, r, t;
+    while(a!=0){
+        q=d/a,r=d%a;
+        d=a,a=r;
+        t=x-q*s,x=s,s=t;
+		}
+    if(d!=1)return -1;  // 沒有倒數、無法整除
+    return(x+m)%m;
+	}	
+
+//擴展歐基理德
+//ax+by==gcd(a,b)的解
+LL extGcd (LL a, LL b, LL &x, LL &y) {
+    LL ret = a;
+    if (b) {
+        ret = extGcd (b, a % b, y, x);
+        y -= (a / b) * x;
+    } else x = 1, y = 0;
+    return ret;
+}
+
+//模逆元
+LL modInv (LL a, LL m) {
+    LL x, y;
+    extGcd(a,m,x,y);
+    return (m+x%m)%m;
+}//if m为质数 [费马小定理]a^(m-1)=1 mod m ==>a^(m-2)是a关于m的逆元
+
+//大數(可處理負數)
+const int N=1000;
+struct Bnum{
+    char num[N+1];
+	bool operator>(Bnum &B2){
+		for(int i=N;i>=0;i--)
+			if(num[i]<B2.num[i]){return 0;}
+			else if(num[i]>B2.num[i])return 1;
+        return 0;
+		}
+	bool operator<(Bnum &B2){
+		for(int i=N;i>=0;i--)
+			if(num[i]>B2.num[i])return 0;
+			else if(num[i]<B2.num[i])return 1;
+        return 0;
+		}
+	bool operator==(Bnum &B2){
+		for(int i=0;i<=N;i++)
+			if(num[i]!=B2.num[i])return 0;
+        return 1;
+		}
+    bool operator!=(Bnum &B2){
+        return !operator==(B2);
+		}
+    void operator=(Bnum B2){
+        for(int i=0;i<=N;i++)
+			num[i]=B2.num[i];
+		}
+	void operator=(int a){
+		(*this).clear();
+        for(int i=0;i<=N;i++){
+			num[i]=a%10;
+			a/=10;
+			if(!a)break;
+			}
+		}
+	void operator+=(Bnum &B2){
+        for(int i=0;i<=N;i++)
+			num[i]+=B2.num[i];
+        for(int i=0;i<N;i++)
+			if(num[i]>=10){num[i]-=10;num[i+1]++;}
+		}
+	void operator-=(Bnum &B2){
+        for(int i=0;i<=N;i++)
+			num[i]-=B2.num[i];
+        for(int i=0;i<N;i++)
+			if(num[i]<0){num[i]+=10;num[i+1]--;}
+		}
+	void operator*=(Bnum B2){
+		Bnum B3;
+		if(num[N]<0||B2.num[N]<0){
+			int bol=0;
+			Bnum B4,B5;
+			B4.clear();
+			if(B2.num[N]<0)B4-=B2,bol++;
+			else B4=B2;
+			if(num[N]<0){bol++;
+				for(int i=0;i<=N;i++)
+					B5.num[i]=-num[i];
+				for(int i=0;i<N;i++)
+					if(B5.num[i]<0){B5.num[i]+=10;B5.num[i+1]--;}
+				}
+			else{
+				for(int i=0;i<=N;i++)
+					B5.num[i]=num[i];
+				}
+			B4*=B5;
+			if(bol%2){
+				for(int i=0;i<=N;i++)
+					num[i]=-B4.num[i];
+				for(int i=0;i<N;i++)
+					if(num[i]<0){num[i]+=10;num[i+1]--;}
+				return;
+				}
+			for(int i=0;i<=N;i++)
+				num[i]=B4.num[i];
+			return;
+			}
+        for(int i=0;i<=N;i++)
+			B3.num[i]=num[i],num[i]=0;
+        for(int i=0;i<(N>>1);i++)
+			for(int j=0;j<(N>>1);j++){
+				num[i+j]+=B2.num[i]*B3.num[j];
+				if(num[i+j]>=10){num[i+j+1]+=num[i+j]/10;num[i+j]%=10;}
+				}
+        for(int i=0;i<N;i++)
+			if(num[i]>=10){num[i+1]+=num[i]/10;num[i]%=10;}
+		}
+	void operator<<=(int a){
+		for(int i=N;i>=a;i--)
+			num[i]=num[i-a];
+		for(int i=0;i<a;i++)
+			num[i]=0;
+		}
+	void operator>>=(int a){
+		for(int i=0;i<=N-a;i++)
+			num[i]=num[i+a];
+		for(int i=N-a+1;i<=N;i++)
+			num[i]=0;
+		}
+	Bnum operator/(Bnum &B2){
+        Bnum k,ans,t,zero,tmp;
+        zero.clear();
+        t=1;
+        k=B2;
+        tmp=(*this);
+        ans.clear();
+        while(k<(*this)||k==(*this)){
+			k<<=1;
+			t<<=1;
+			}
+		k>>=1;
+		t>>=1;
+		while(t!=zero){
+			while(tmp>k||tmp==k){
+				tmp-=k;
+				ans+=t;
+				}
+			t>>=1;
+			k>>=1;
+			}
+		return ans;
+        }
+	void clear(){
+		for(int i=0;i<=N;i++)
+			num[i]=0;
+		}
+	void print(){
+		bool zero=0,rem=0;
+		char output[N+10];
+		int place;
+		Bnum tmp;
+		if(num[N]<0){
+			for(int i=0;i<=N;i++)
+				tmp.num[i]=num[i];
+			for(int i=0;i<=N;i++)
+				num[i]=-num[i];
+			for(int i=0;i<N;i++)
+				if(num[i]<0){num[i]+=10;num[i+1]--;}
+			rem=1;
+			}
+        int op=0;
+		for(int i=N-1;i>=0;i--){
+			if(zero==1){
+                output[op++]=num[i]+'0';
+                }
+			else if(num[i]!=0){
+                output[op++]=num[i]+'0';
+				zero=1;
+				}
+			}
+        output[op++]=0;
+		if(zero==0)printf("0");
+		else if(rem){
+            putchar('-');
+            printf(output);
+			for(int i=0;i<=N;i++)
+				num[i]=tmp.num[i];
+			}
+		else{
+            printf(output);
+			}
+		}
+	bool scan(){
+		char input[N];
+		int tmp=0;
+		if(!(~scanf("%s",input)))return 0;
+		if(input[0]=='-'){tmp=1;}
+		int len=strlen(input);
+		for(int i=0;i<=N;i++)
+			num[i]=0;
+		for(int i=tmp;i<len;i++)
+			num[i-tmp]=input[len-(i-tmp)-1]-'0';
+		if(tmp){
+			for(int i=0;i<=N;i++)
+				num[i]=-num[i];
+			for(int i=0;i<N;i++)
+				if(num[i]<0){num[i]+=10;num[i+1]--;}
+			}
+		return 1;
+		}
+	};
+
+int main(){
+	string s;
+    while(cin>>s){
+        sort(s.begin(),s.end());
+        do{
+			printf("%s\n",&s[0]);
+			}while(next_permutation(s.begin(),s.end()));
+        }
+    return 0;
+    }
+
+//__builtin
+* int __builtin_ffs (unsigned int x)
+      返回x的最後一位1的是從後向前第幾位，比如7368（1110011001000）返回4。
+* int __builtin_clz (unsigned int x)
+      返回前導的0的個數。
+* int __builtin_ctz (unsigned int x)
+      返回後面的0個個數，和__builtin_clz相對。
+* int __builtin_popcount (unsigned int x)
+      返回二進製表示中1的個數。
+* int __builtin_parity (unsigned int x)
+      返回x的奇偶校驗位，也就是x的1的個數模2的結果。
+p.s.在函數名稱後面加ll就可以用在long long int 上了。
+31 - __builtin_clz(a)   取log2(a)==__lg(a)
+
+//靜態區間最大值
+const int N = 1000;
+const int logN = ceil(log2(N));
+int value[N];
+int t[logN][N]; // t[i][j]儲存區間[j, j+(2^i)-1]的最小值的索引值
+void construct(){
+    for (int i=0; i<N; ++i)
+        t[0][i] = value[i];
+    for (int i=1; (1<<i)<=N; ++i)
+        for (int j=0; j+(1<<i)<=N; ++j)
+            t[i][j] = min(t[i-1][j], t[i-1][j+(1<<(i-1))]);
+}
+int query(int a, int b){
+    int p = 31 - __builtin_clz(abs(b - a) + 1);
+    return min(t[p][a], t[p][b-(1<<p)+1]);
+}
+
+//KMP
+	while(~scanf("%s",s)){
+		int len=strlen(s);
+		for(int i=0;i<len;i++){
+			ss[len-i-1]=s[i];
+			}
+		ss[len]=0;
+		dp[0]=-1;
+		for(int i=1;i<len;i++){
+			int p=dp[i-1];
+			while(p!=-1&&ss[p+1]!=ss[i]){
+				p=dp[p];
+			}
+			if(ss[p+1]!=ss[i])dp[i]=-1;
+			else
+				dp[i]=p+1;
+		}
+		int p=0;
+		for(int i=0;i<len;i++){
+			if(s[i]==ss[p]){
+				p++;
+				}
+			else{
+				if(p!=0){
+					p=dp[p-1]+1;
+					i--;
+					}
+				}
+			}
+		printf("%s%s ",s,ss+p);
+		}
+
+//SA+H
+const int N=100005;
+int n,SA[N],rk[2][N];
+char s[N];
+void mak_SA(){
+	n=strlen(s);n++;
+	for(int i=0;i<n;i++)
+		rk[0][i]=s[i],SA[i]=i;
+	for(int k=0;(1<<k)<n;k++){
+        int pri=k&1,now=~k&1;
+		sort(SA,SA+n,[&pri,&k](int a,int b){
+            if(rk[pri][a]==rk[pri][b])return rk[pri][a+(1<<k)]<rk[pri][b+(1<<k)];
+            return rk[pri][a]<rk[pri][b];
+            });
+		int cnt=0;
+		rk[now][SA[0]]=cnt;
+		for(int i=1;i<n;i++){
+			cnt+=(rk[pri][SA[i-1]]!=rk[pri][SA[i]]) || (rk[pri][SA[i-1]+(1<<k)]!=rk[pri][SA[i]+(1<<k)]);
+			rk[now][SA[i]]=cnt;
+			}
+        if(cnt==n)return;
+		}
+	}
+void mak_SA2(){//buggy
+    n=strlen(s);
+    int *rnk=rk1,*rp=rk2;
+    for(int i=0;i<n;i++)
+        rp[i]=s[i];
+    sort(rp,rp+n);
+    int m=unique(rp,rp+n)-rp;
+    for(int i=0;i<m;i++)buk[i]=0;
+    for(int i=0;i<n;i++)buk[rnk[i]=lower_bound(rp,rp+m,s[i])-rp]++;
+    for(int i=1;i<m;i++)buk[i]+=buk[i-1];
+    for(int i=n-1;i>=0;i--)SA[--buk[rnk[i]]]=i;
+    int p=m;
+    for(int j=1;p<n;j*=2,m=p){
+        p=0;
+        for(int i=n-j;i<n;i++)rp[p++]=i;
+        for(int i=0;i<n;i++)if(SA[i]>=j)rp[p++]=SA[i]-j;
+        for(int i=0;i<m;i++)buk[i]=0;
+        for(int i=0;i<n;i++)buk[rnk[rp[i]]]++;
+        for(int i=1;i<m;i++)buk[i]+=buk[i-1];
+        for(int i=n-1;i>=0;i--)SA[--buk[rnk[rp[i]]]]=rp[i];
+        swap(rnk,rp);
+        p=1;
+        rnk[SA[0]]=0;
+        for(int i=1;i<n;i++)
+            rnk[SA[i]]=(rp[SA[i]]==rp[SA[i-1]]&&rp[SA[i]+j]==rp[SA[i-1]+j])?p-1:p++;
+        }
+    }
+int rnk[N];   // 各個後綴對應的名次
+int H[N];   // longest common prefix array
+void mak_h(){
+    // 也就是各個後綴在sa當中的索引值
+    // 也就是sa的反函數
+    for(int i=0;i<n;i++)
+        rnk[SA[i]]=i;
+    for (int i=0,lcp=0;i<n;i++)
+        if(rnk[i]==0)
+            H[0]=0;
+        else{
+            int j=SA[rnk[i]-1];
+            if(lcp>0)lcp--;
+            while(s[i+lcp]==s[j+lcp])lcp++;
+            H[rnk[i]]=lcp;
+            }
+    }
+
+//Treap
+typedef struct node* ptr;
+ptr nil=NULL;
+struct node{
+    ptr l,r,fa;
+    int v;
+    unsigned int sz;
+    node(int _v,ptr _fa=nil){v=_v,sz=1,l=r=nil,fa=_fa;}
+    inline void push(){fa=nil;}
+    inline void pull(){sz=(l?l->sz:0)+(r?r->sz:0);if(l)l->fa=this;if(r)r->fa=this;}
+    };
+ptr merge(ptr a,ptr b){
+    static unsigned int S=rand();
+    if(!a)return b;if(!b)return a;
+    if((S++)%(a->sz+b->sz)<a->sz){a->push(),a->r=merge(a->r,b),a->pull();return a;}
+    else{b->push(),b->l=merge(a,b->l),b->pull();return b;}
+    }
+void split(ptr now,int k,ptr &a,ptr &b){
+    if(!now)a=b=nil;
+    else if(now->v<k)
+        a=now,a->push(),split(now->r,k,a->r,b),a->pull();
+    else
+        b=now,b->push(),split(now->l,k,a,b->l),b->pull();
+    }
+struct tree{
+	ptr root;
+	tree(){root=nil;}
+	void insert(int k){
+		ptr a=nil,b=nil;
+		split(root,k,a,b);
+		root=merge(merge(a,new node(k)),b);
+		}
+	void erase(int k){
+		ptr a=nil,b=nil,c=nil;
+		split(root,k-1,a,b);
+		split(b,k,b,c);
+		delete b;
+		root=merge(a,c);
+		}
+	ptr kth(ptr rot,unsigned int k){//0base
+		if(k<rot->l->sz)return kth(rot->l,k);
+		if(k==rot->l->sz)return rot;
+		return kth(rot->r,k-rot->l->sz-1);
+		}
+	ptr operator[](unsigned int k){
+		if(k>=root->sz)return nil;
+		return kth(root,k);
+		}
+	ptr lower_bound(int k){
+		ptr now=root,pri=nil;
+		while(now!=nil)
+			if(k<=now->v)pri=now,now=now->l;
+			else now=now->r;
+		return pri;
+		}
+	ptr upper_bound(int k){
+		ptr now=root,pri=nil;
+		while(now!=nil)
+			if(k<now->v)pri=now,now=now->r;
+			else now=now->l;
+		return pri;
+		}
+    };
+
+//二分圖匹配
+bool mp[1005][1005];
+int go[1005];
+bool used[1005];
+int main(){
+    int n,k,T=0;
+    while(~scanf("%d%d",&n,&k),n||k){T++;
+        memset(mp,0,sizeof(mp));
+        for(int i=0;i<k;i++){
+            int x,y;
+            scanf("%d%d",&x,&y);
+            mp[x-1][y-1]=1;
+            }
+        memset(go,-1,sizeof(go));
+        int ans=0;
+        for(int i=0;i<n;i++){
+            memset(used,0,sizeof(used));
+            function<bool(int)>F=[&](int now)->bool{
+                for(int j=0;j<n;j++)
+                    if(mp[now][j] && !used[j]++ && (!~go[j]||F(go[j])) ){
+                        go[j]=now;
+                        return 1;
+                        }
+                return 0;
+                };
+            ans+=F(i);
+            }
+        printf("Case #%d:%d\n",T,ans);
+        }
+    return 0;
+    }
+
+//矩陣運算套裝
+template<unsigned int N,typename T=int>
+struct cub{
+    T a[N][N];
+    int n,m; 
+    cub(int _n,int _m,T k=0){
+        n=_n;
+        m=_m;
+        for(int i=0;i<n;i++)
+            for(int j=0;j<m;j++)
+                a[i][j]=0;
+        if(k)
+            for(int i=0;i<n;i++)
+                a[i][i]=k;
+        }
+    cub(T k=0){
+        n=N;
+        m=N;
+        for(int i=0;i<n;i++)
+            for(int j=0;j<m;j++)
+                a[i][j]=0;
+        if(k)
+            for(int i=0;i<n;i++)
+                a[i][i]=k;
+        }
+    void rebuild(int _n=0,int _m=0,T k=0){
+        n=_n;
+        m=_m;
+        for(int i=0;i<n;i++)
+            for(int j=0;j<m;j++)
+                a[i][j]=0;
+        if(k)
+            for(int i=0;i<n;i++)
+                a[i][i]=k;
+        }
+    inline T* operator [](int x){
+        return a[x];
+        }
+    cub operator +(cub b){
+        if(n!=b.n||m!=b.m)throw("+ error");
+        cub c(n,m);
+        for(int i=0;i<n;i++)
+            for(int j=0;j<m;j++)
+                c[i][j]=a[i][j]+b[i][j];
+        return c;
+        }
+    cub operator -(cub b){
+        if(n!=b.n||m!=b.m)throw("- error");
+        cub c(n,m);
+        for(int i=0;i<n;i++)
+            for(int j=0;j<m;j++)
+                c[i][j]=a[i][j]-b[i][j];
+        return c;
+        }
+    cub operator *(cub b){
+        if(m!=b.n)throw("* error");
+        cub c(n,b.m);
+        for(int i=0;i<n;i++)
+            for(int j=0;j<b.m;j++)
+                for(int k=0;k<m;k++)
+                    c[i][j]+=a[i][k]*b[k][j];
+        return c;
+        }
+    cub operator *(T b){
+        cub c(n,m);
+        for(int i=0;i<n;i++)
+            for(int j=0;j<m;j++)
+                c[i][j]=a[i][j]*b;
+        return c;
+        }
+    cub del(int x,int y){
+        if(x>=n||y>=m)throw("del error");
+        cub c(n-1,m-1);
+        for(int i=0,ci=0;i<n;i++,ci++){
+            if(i==x){ci--;continue;}
+            for(int j=0,cj=0;j<m;j++,cj++){
+                if(j==y){cj--;continue;}
+                c[ci][cj]=a[i][j];
+                }
+            }
+        return c;
+        }
+    T det(){
+        if(n!=m)throw("det error");
+        if(n==1)return a[0][0];
+        if(n==2)return a[0][0]*a[1][1]-a[0][1]*a[1][0];
+        T ret=0;
+        int t=1;
+        for(int i=0;i<n;i++){
+            ret+=t*a[0][i]*del(0,i).det();
+            t=-t;
+            }
+        return ret;
+        }
+    cub gus(){
+        if(n>m)throw("gus error");
+        cub mtx=*this; 
+        for(int i=0;i<n;i++){
+            for(int j=i;j<n;j++)
+                if(mtx[j][i].p){
+                    for(int k=0;k<m;k++)
+                        swap(mtx[i][k],mtx[j][k]);
+                    break;
+                    }
+            if(!mtx[i][i].p)continue;
+            for(int k=n;k>=i;k--)
+                mtx[i][k]=mtx[i][k]/mtx[i][i];
+            for(int j=i+1;j<n;j++)
+                for(int k=m-1;k>=i;k--)
+                    mtx[j][k]=mtx[j][k]-mtx[i][k]*mtx[j][i];
+            }
+        for(int i=n-1;i>=0;i--){
+            for(int j=i-1;j>=0;j--){
+                for(int k=n;k<m;k++)
+                    mtx[j][k]=mtx[j][k]-mtx[i][k]*mtx[j][i];
+                mtx[j][i]=0;
+                }
+            }
+        return mtx;
+        }
+    cub Tr(){
+        cub c(m,n);
+        for(int i=0;i<n;i++){
+            for(int j=0;j<m;j++){
+                c[j][i]=a[i][j];
+                }
+            }
+        return c;
+        }
+    cub operator -(){
+        if(!det())throw("~ error");
+        cub d(n,n);
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                d[i][j]=del(j,i).det()*(((i+j)&1)?-1:1);
+                }
+            }
+        return d;
+        }
+    cub operator ~(){
+        return (-*this)*(1.0/det());
+        }
+    cub operator /(cub b){
+        return (*this*(-b));//*b.det();
+        }
+    cub operator %(cub b){
+        return ((-*this)*b);//*det();
+        }
+    cub operator ^(long long int b){
+        cub ret(n,m,1),now=*this;
+        while(b){
+            if(b&1)ret=ret*now;
+            now=now*now;
+            b>>=1;
+            }
+        return ret;
+        }
+    void print(){
+        printf("[ ");
+        for(int i=0;i<n;i++){
+            if(i)printf("; ");
+            for(int j=0;j<m;j++)
+                printf("%d ",a[i][j]);
+            }
+        printf("]\n");
+        }
+    };
+
+//有理數套裝
+struct lnum{
+    long long int p,q;
+    lnum(){q=1;p=0;}
+    lnum(long long int x){q=1;p=x;}
+    lnum(long long int _p,long long int _q){q=_q;p=_p;}
+    void print(){
+        long long int g=__gcd(p,q);
+        if(!g)g=1;
+        p/=g,q/=g;
+        if(q<0)q*=-1,p*=-1;
+        if(q==1||p==0)
+            printf("%lld",p);
+        else
+            printf("%lld/%lld",p,q);
+        }
+    lnum operator=(int x){q=1;p=x;}
+    lnum operator+(lnum b){
+        long long int g=__gcd(q,b.q);
+        return lnum(p*b.q/g+b.p*q/g,q*b.q/g);
+        }
+    lnum operator-(lnum b){
+        long long int g=__gcd(q,b.q);
+        return lnum(p*b.q/g-b.p*q/g,q*b.q/g);
+        }
+    lnum operator*(lnum b){
+        long long int g=__gcd(p*b.p,q*b.q);
+        if(!g)g=1;
+        if(p==0||b.p==0)return lnum(0,1);
+        return lnum(p*b.p/g,q*b.q/g);
+        }
+    lnum operator/(lnum b){
+        return (*this)*lnum(b.q,b.p);
+        }
+    };
+
+//KM
+int mp[605][605],go[605],lx[605],ly[605],sl[605];
+bool usx[605],usy[605];
+int n;
+bool F(int now,bool adj=true){
+    if(usx[now])return 0;
+    usx[now]=1;
+    for(int i=0;i<n;i++){
+        if(usy[i])continue;
+        int v=lx[now]+ly[i]-mp[now][i];
+        if(v)sl[i]=min(sl[i],v);
+        else{
+            usy[i]=1;
+            if((!~go[i])||F(go[i],adj)){
+                if(adj)go[i]=now;
+                return 1;
+                }
+            }
+        }
+    return 0;
+    };
+int main(){
+    while(~scanf("%d",&n)){
+        memset(go,-1,sizeof(go));
+        memset(ly,0,sizeof(ly));
+        for(int i=0;i<n;i++)
+            for(int j=0;j<n;j++)
+                scanf("%d",&mp[i][j]);
+        for(int i=0;i<n;i++){
+            lx[i]=-0x7fffffff;
+            for(int j=0;j<n;j++)
+                lx[i]=max(lx[i],mp[i][j]);
+            }
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++)
+                sl[j]=0x7fffffff;
+            memset(usx,0,sizeof(usx));
+            memset(usy,0,sizeof(usy));
+            if(F(i))continue;
+            bool flag=true;
+            while(flag){
+                int d=0x7fffffff;
+                for(int j=0;j<n;j++)
+                    if(!usy[j])
+                        d=min(d,sl[j]);
+                for(int j=0;j<n;j++){
+                    if(usx[j])lx[j]-=d;
+                    if(usy[j])ly[j]+=d;
+                    else sl[j]-=d;
+                    }
+                for(int j=0;j<n;j++){
+                    if(!usy[j]&&!sl[j]){
+                        usy[j]=1;
+                        if((!~go[j])||F(go[j],0)){
+                            flag=0;
+                            break;
+                            }
+                        }
+                    }
+                }
+            memset(usx,0,sizeof(usx));
+            memset(usy,0,sizeof(usy));
+            F(i);
+            }
+        int ans=0;
+        for(int i=0;i<n;i++)
+            ans+=mp[go[i]][i];
+        printf("%d\n",ans);
+        }
+    return 0;
+    }
+
+
+//引用技數指針(待驗證)
+struct nod;
+struct ptr{
+    nod *p;
+    ptr(nod *t=0);
+    ptr(const ptr &t);
+    ~ptr();
+    ptr& operator=(const ptr &t);
+    ptr& operator=(nod *t);
+    nod* operator->(){return p;}
+    bool operator==(const ptr &t){return p==t.p;}
+    }nil;
+struct nod{
+    int cnt=0;
+    ptr l,r;
+    char v;
+    int sz;
+    nod():v(0),l(nil),r(nil),sz(0){cnt=0x7fffffff;}
+    nod(char _v):v(_v),l(nil),r(nil),sz(1){}
+    nod(ptr &nd):v(nd->v),l(nd->l),r(nd->r),sz(nd->sz){}
+    void update(){sz&&(sz=1+l->sz+r->sz);}
+    };
+ptr::ptr(nod*t):p(t){p&&p->cnt++;}
+ptr::ptr(const ptr&t):p(t.p){p&&p->cnt++;}
+ptr::~ptr(){if(p&&!--p->cnt)delete p;}
+ptr& ptr::operator = (const ptr &t){
+    if(p&&!--p->cnt)
+        delete p;
+    p=t.p;
+    p&&p->cnt++;
+    return*this;
+    }
+ptr& ptr::operator = (nod *t){
+    if(p&&!--p->cnt)
+        delete p;
+    p=t;
+    p&&p->cnt++;
+    return*this;
+    }
+
+//引用計數指針2(待驗證)
+template<typename T>
+class ptr{
+    private:
+        int *cnt;
+        T* p;
+    public:
+    ptr(){
+        cnt=nullptr;
+        }
+    ptr(T* t){
+        cnt=new int(1);
+        p=t;
+        }
+    ptr(const ptr &t){
+        cnt=t.cnt;
+        (*cnt)++;
+        p=t.p;
+        }
+    ~ptr(){
+        if(cnt&&!--(*cnt)){
+            delete cnt;
+            delete p;
+            }
+        }
+    ptr& operator=(const ptr &t){
+        if(cnt&&!--(*cnt)){
+            delete cnt;
+            delete p;
+            }
+        cnt=t.cnt;
+        (*cnt)++;
+        printf("= %d\n",*cnt);
+        p=t.p;
+        }
+    ptr& operator=(T* t){
+        if(cnt&&!--(*cnt)){
+            delete cnt;
+            delete p;
+            }
+        cnt=new int(1);
+        p=t;
+        }
+    T* operator->(){
+        return p;
+        }
+    T& operator*(){
+        return *p;
+        }
+    bool operator==(const ptr &t){
+        return p==t.p;
+        }
+    };
+
+//最小包覆圓
+typedef pair<double,double> par;
+typedef pair<double,double> vec;
+typedef pair<double,par> pr;
+inline double crs(par &o,par &a,par &b){
+    return (a.f-o.f)*(b.s-o.s)-(a.s-o.s)*(b.f-o.f);
+    }
+inline double dot(vec a,vec b){
+    return a.f*b.f+a.s*b.s;
+    }
+inline vec ptv(par &a,par &b){
+    return par(b.f-a.f,b.s-a.s);
+    }
+inline double dis2(par &a,par &b){
+    return (a.f-b.f)*(a.f-b.f)+(a.s-b.s)*(a.s-b.s);
+    }
+inline double dis2(vec x){
+    return (x.f)*(x.f)+(x.s)*(x.s);
+    }
+inline par mid(par &a,par &b){
+    return par((a.f+b.f)/2,(a.s+b.s)/2);
+    }
+inline par outmid(par &a,par &b,par &c){
+    double a2=dis2(a),b2=dis2(b),c2=dis2(c);
+    double di=(a.f*b.s+b.f*c.s+c.f*a.s-a.f*c.s-b.f*a.s-c.f*b.s)*2;
+    return par((a2*b.s+b2*c.s+c2*a.s-a2*c.s-b2*a.s-c2*b.s)/di,(a.f*b2+b.f*c2+c.f*a2-a.f*c2-b.f*a2-c.f*b2)/di);
+    }
+par nod[1000005],st[10005];
+typedef pair<par,double> cir;//c,r^2
+inline cir getcir(par &a,par &b,par &c){
+    if(dot(ptv(a,b),ptv(a,c))<=0)
+        return cir(mid(b,c),dis2(b,c)/4);
+    if(dot(ptv(b,c),ptv(b,a))<=0)
+        return cir(mid(a,c),dis2(a,c)/4);
+    if(dot(ptv(c,a),ptv(c,b))<=0)
+        return cir(mid(a,b),dis2(a,b)/4);
+    double a2=a.f*a.f+a.s*a.s,b2=b.f*b.f+b.s*b.s,c2=c.f*c.f+c.s*c.s;
+    par o=outmid(a,b,c);
+    return cir(o,dis2(o,a));
+    }
+inline bool incir(cir &c,par &x){
+    return dis2(x,c.f)-c.s<=0.00001;
+    }
+int main(){
+    int n,m;
+    while(~scanf("%d%d",&m,&n),n||m){
+        for(int i=0;i<n;i++)
+            scanf("%lf%lf",&nod[i].f,&nod[i].s);
+        sort(nod,nod+n);
+        int p=0;
+        for(int i=0;i<n;i++){
+            while(p>1&&crs(st[p-2],st[p-1],nod[i])<0)
+                p--;
+            st[p++]=nod[i];
+            }
+        int q=p;
+        for(int i=n-2;i>=0;i--){
+            while(p>q&&crs(st[p-2],st[p-1],nod[i])<0)
+                p--;
+            st[p++]=nod[i];
+            }
+        p--;
+        random_shuffle(st,st+p);
+        bool run=1,cnt=0;
+        cir c(st[0],0);
+        for(int i=0;i<p;i++){
+            if(incir(c,st[i]))continue;
+            c=cir(par((st[i].f+st[0].f)/2,(st[i].s+st[0].s)/2),dis2(st[i],st[0])/4);
+            for(int j=1;j<i;j++){
+                if(incir(c,st[j]))continue;
+                c=cir(par((st[i].f+st[j].f)/2,(st[i].s+st[j].s)/2),dis2(st[i],st[j])/4);
+                for(int k=0;k<j;k++){
+                    if(incir(c,st[k]))continue;
+                    c=getcir(st[i],st[j],st[k]);
+                }
+            }
+        }
+    printf("%.3f\n",sqrt(c.s));
+    }
+
+//Dinic Flow O(V^2*E)
+void add(int a, int b, int c){
+    nod[a].push_back(pr(par(b,c),nod[b].size()));
+    nod[b].push_back(pr(par(a,0),nod[a].size()-1));
+    }
+int d[1005];
+int BFS(int s,int t){
+    memset(d,0,sizeof(d));d[s]=1;
+    queue<int>qu;qu.push(s);
+    while(!qu.empty()){
+        int now=qu.front();qu.pop();
+        if(now==t)return d[t];
+        for(pr x:nod[now])
+            if(x.f.s&&!d[x.f.f])
+                d[x.f.f]=d[now]+1,qu.push(x.f.f);
+        }
+    return 0;
+    }
+int DFS(int now,int fl,int t){
+    if(now==t)return fl;
+    int cost=0,f;
+    for(pr &x:nod[now])
+        if(x.f.s&&d[now]+1==d[x.f.f]&&fl>cost)
+            if(f=DFS(x.f.f,min(fl-cost,x.f.s),t))
+                x.f.s-=f,nod[x.f.f][x.s].f.s+=f,cost+=f;
+    return cost;
+    }
+int dinic(int s,int t){
+    int flow=0;
+    while(BFS(s,t))
+        flow+=DFS(s,0x7fffffff,t);
+    return flow;
+    }
+
+//Flow O(V^3)
+const int N=105;
+int mp[N][N];
+int fl[N][N];
+int d[N],e[N];
+int q[N*N],*qb,*qe;
+bool iq[N];
+int n;
+void preflow(int s,int t){
+    for(int j=0;j<n;j++)
+        if(mp[s][j]&&j!=s){
+            e[j]=mp[s][j];
+            fl[s][j]+=e[j];
+            fl[j][s]-=e[j];
+            if(j!=s&&j!=t&&!iq[j])*qe++=j,iq[j]=true;
+            }
+    }
+
+void push(int i, int j){
+    int f=min(e[i],mp[i][j]-fl[i][j]);
+    e[i]-=f;
+    e[j]+=f;
+    fl[i][j]+=f;
+    fl[j][i]-=f;
+    }
+
+void relabel(int i){
+    for(int j=0;j<n;j++)
+        if(mp[i][j]-fl[i][j])
+            d[i]=min(d[i],d[j]);
+    d[i]++;
+    }
+void discharge(int i,int s,int t){
+    while(e[i]){
+        for(int j=0;j<n;j++)
+            if(d[i]==d[j]+1&&mp[i][j]-fl[i][j]){
+                push(i,j);
+                if(j!=s&&j!=t&&!iq[j])*qe++=j,iq[j]=true;
+                if(!e[i])return;
+                }
+        relabel(i);
+        }
+    }
+int flow(int s, int t){
+    memset(d,0,sizeof(d));
+    memset(e,0,sizeof(e));
+    memset(iq,0,sizeof(iq));
+    memset(fl,0,sizeof(fl));
+    qb=qe=q;
+    d[s]=n-1;
+    preflow(s,t);
+    while(qb<qe){
+        int i=*qb++;
+        iq[i]=false;
+        if(e[i]&&i!=s&&i!=t)
+            discharge(i,s,t);
+        }
+    return e[t];
+    }
+
+//link-cut-treap O(lg^2 N)
+typedef struct node* ptr;
+ptr nil=NULL;
+struct node{
+    ptr l,r,fa,sl;
+    unsigned int sz;
+    bool sptag,rev;
+    int val,sig;
+    bool zer;
+    node(int _val=0,int _sig=0,ptr _fa=nil):l(nil),r(nil),fa(_fa),sl(nil),sz(1),sptag(0),rev(0),val(_val),sig(_sig),zer(0){}
+    inline void chrev(){
+        if(rev){
+            rev=0;
+            swap(l,r);
+            if(l)l->rev^=1;
+            if(r)r->rev^=1;
+            }
+        }
+    inline void push(){
+        chrev();
+        fa=nil;
+        if(zer){
+            zer=0;
+            if(l)l->zer=1,l->val=0,l->sig=0;
+            if(r)r->zer=1,r->val=0,r->sig=0;
+            }
+        }
+    inline void pull(){
+        sz=(l?l->sz:0)+(r?r->sz:0)+1;
+        sig=(l?l->sig:0)+(r?r->sig:0)+val;
+        if(l)l->fa=this;
+        if(r)r->fa=this;
+        }
+    ptr top(){
+        ptr now=this;
+        if(fa)now=fa->top();
+        chrev();
+        return now;
+        }
+    ptr left(){
+        chrev();
+        if(l)return l->left();
+        return this;
+        }
+    ptr right(){
+        chrev();
+        if(r)return r->right();
+        return this;
+        }
+    ptr next(){
+        top();
+        if(r)return r->left();
+        ptr now=this;
+        while(now->fa)
+            if(now->fa->l==now)return now->fa;
+            else now=now->fa;
+        return nil;
+        }
+    ptr pre(){
+        top();
+        if(l)return l->right();
+        ptr now=this;
+        while(now->fa)
+            if(now->fa->r==now)return now->fa;
+            else now=now->fa;
+        return nil;
+        }
+    };
+ptr merge(ptr a,ptr b){
+    static unsigned int S=rand();
+    if(!a)return b;if(!b)return a;
+    if((S++)%(a->sz+b->sz)<a->sz){
+        a->push();
+        a->r=merge(a->r,b);
+        a->pull();
+        return a;
+        }
+    else{
+        b->push();
+        b->l=merge(a,b->l);
+        b->pull();
+        return b;
+        }
+    }
+void split(ptr now,ptr &a,ptr &b){
+    if(!now)a=b=nil;
+    else if(!now->sptag){
+        a=now;
+        a->push();
+        split(now->r,a->r,b);
+        a->pull();
+        }
+    else{
+        now->sptag=0;
+        b=now;
+        b->push();
+        split(now->l,a,b->l);
+        b->pull();
+        }
+    }
+void split(ptr now,ptr cut,ptr &a,ptr &b){
+    if(cut){
+        cut->sptag=1;
+        while(cut!=now){
+            if(cut->fa->l==cut)
+                cut->fa->sptag=1;
+            cut=cut->fa;
+            }
+        split(now,a,b);
+        }
+    else a=now,b=nil;
+    }
+void cuthl(ptr now){
+    ptr rot=now->top(),a,b;
+    split(rot,now->next(),a,b);
+    if(b)b->left()->sl=a->right();
+    }
+ptr access(ptr now){
+    cuthl(now);
+    ptr rot=now->top();
+    now=rot->left();
+    if(now->sl)
+        return merge(access(now->sl),rot);
+    return rot;
+    }
+ptr root(ptr now){
+    access(now);
+    return now->top()->left();
+    }
+void chroot(ptr now){
+    ptr p=access(now);
+    swap(p->left()->sl,p->right()->sl);
+    p->rev^=1;
+    }
+void cut(ptr x,ptr y){
+    ptr a,b;
+    if(access(x),x->pre()==y){
+        split(x,x,a,b);
+        b->left()->sl=nil;
+        }
+    else if(access(y),y->pre()==x){
+        split(y,y,a,b);
+        b->left()->sl=nil;
+        }
+    }
+void join(ptr now,ptr to){
+    //if(now!=root(now))throw("error");
+    now->sl=to;
+    }	
+
+//tarjan 點雙連通
+vector<int> nod[100005];
+int id[100005],nid;
+int dfn[100005],low[100005],cnt;
+stack<par>st;
+void F(int now,int f){
+    dfn[now]=low[now]=++cnt;
+    for(int x:nod[now]){
+        if(x==f)continue;
+        if(!dfn[x]){
+            st.push(par(now,x));
+            F(x,now);
+            low[now]=min(low[now],low[x]);
+            par tmp;
+            if(dfn[now]<=low[x]){
+                do{
+                    tmp=st.top();
+                    st.pop();
+                    id[tmp.f]=id[tmp.s]=nid;
+                    }while(tmp!=par(now,x));
+                nid++;
+                }
+            }
+        else{
+            low[now]=min(low[now],dfn[x]);
+            if(dfn[now]>dfn[x])
+                st.push(par(now,x));
+            }
+        }
+    }
+for(int j=c;j;j=c&j-1);
+
+//重心剖分
+vector<par>nod[100005];
+vector<int>gnod[100005];
+int qu[100005],fa[100005];
+int us[100005];
+int qf=0,qe=0;
+int sz[100005],msz[100005];
+void bfs(int now){
+    qf=0,qe=0;
+    qu[qe++]=now;
+    fa[now]=-1;
+    sz[now]=1;
+    msz[now]=0;
+    while(qf!=qe){
+        int nw=qu[qf++];
+        for(auto &x:nod[nw]){
+            if(!us[x.f]&&x.f!=fa[nw])
+                qu[qe++]=x.f,fa[x.f]=nw,sz[x.f]=1,msz[x.f]=0;
+            }
+        }
+    }
+gp_hash_table<int,long long int> dis[100005];
+vector<int>way[100005];
+int fun(int now){
+    bfs(now);
+    for(int i=qe-1;i>=0;i--)
+        if(~fa[qu[i]])
+            sz[fa[qu[i]]]+=sz[qu[i]],msz[fa[qu[i]]]=max(msz[fa[qu[i]]],sz[qu[i]]+1);
+    int g=now,mi=0x7fffffff;
+    for(int i=0;i<qe;i++)
+        if(mi>max(msz[qu[i]],qe-sz[qu[i]]))
+            mi=max(msz[qu[i]],qe-sz[qu[i]]),g=qu[i];
+    bfs(g);
+    for(int i=0;i<qe;i++)
+        way[qu[i]].push_back(g);
+    for(int i=0;i<qe;i++)
+        for(auto &x:nod[qu[i]])
+            if(x.f!=fa[qu[i]]&&!us[x.f])
+                dis[g][x.f]=dis[g][qu[i]]+x.s;
+    us[g]=1;
+    for(auto &x:nod[g])
+        if(!us[x.f])
+            gnod[g].push_back(fun(x.f));
+    return g;
+    }
+long long int sig[100005];
+int cnt[100005];
+gp_hash_table<int,long long int> sg2[100005];
+gp_hash_table<int,int> ct2[100005];
+void add(int to){
+    int sz=way[to].size();
+    for(int i=0;i<sz;i++){
+        int x=way[to][i];
+        sig[x]+=dis[x][to];
+        cnt[x]++;
+        if(i==sz-1)break;
+        sg2[x][way[to][i+1]]+=dis[x][to];
+        ct2[x][way[to][i+1]]++;
+        }
+    }
+long long int qry(int to){
+    long long int ret=sig[to];
+    int sz=way[to].size();
+    for(int i=0;i<sz-1;i++){
+        int x=way[to][i],y=way[to][i+1];
+        ret+=sig[x]-sg2[x][y]+1ll*(cnt[x]-ct2[x][y])*dis[x][to];
+        }
+    return ret;
+    }
+int on[100005];
+int main(){
+    int n,q;
+    scanf("%d%d",&n,&q);
+    for(int i=1;i<n;i++){
+        int a,b,c;
+        scanf("%d%d%d",&a,&b,&c);
+        nod[a].push_back(par(b,c));
+        nod[b].push_back(par(a,c));
+        }
+    int g=fun(0);
+    while(q--){
+        int m,l;
+        scanf("%d%d",&m,&l);
+        if(m==1){
+            if(on[l])
+                continue;
+            on[l]=1;
+            add(l);
+            }
+        else
+            printf("%lld\n",qry(l));
+        }
+    return 0;
+    }
+
+//樹鏈剖分
+typedef pair<int,int>par;
+typedef pair<int,par>pr;
+int bs[100005];
+int bos(int k){
+    return k==bs[k]?bs[k]:(bs[k]=bos(bs[k]));
+    }
+pr qs[300005];
+vector<int>nod[100005];
+int sz[100005];
+int fa[20][100005];
+int lv[100005];
+void F(int now,int f=0,int l=1){
+    lv[now]=l;
+    fa[0][now]=f;
+    for(int i=1;i<20;i++)
+        fa[i][now]=fa[i-1][fa[i-1][now]];
+    sz[now]=1;
+    int ms=nod[now].size();
+    for(int i=0;i<ms;i++){
+        int x=nod[now][i];
+        if(x==f){
+            swap(nod[now][i],nod[now].back());
+            nod[now].pop_back();
+            i--;ms--;
+            continue;
+            }
+        F(x,now,l+1);
+        sz[now]+=sz[x];
+        }
+    sort(nod[now].begin(),nod[now].end(),[&](int a,int b)->bool{return sz[b]<sz[a];});
+    }
+int sgnt;
+vector<int>ve[100005];
+int sgid[100005],sgvp[100005];
+void G(int now,int sid){
+    sgid[now]=sid;
+    sgvp[now]=ve[sid].size();
+    ve[sid].push_back(now);
+    int ms=nod[now].size();
+    if(!ms)return;
+    G(now[nod][0],sid);
+    for(int i=1;i<ms;i++)
+        G(nod[now][i],sgnt++);
+    }
+vector<int> sg[100005];
+void mkt(int sid,int l,int r,int i=0){
+    if(l==r){
+        sg[sid][i]=1;
+        return;
+        }
+    int mid=(l+r)/2;
+    mkt(sid,l,mid,i*2+1);
+    mkt(sid,mid+1,r,i*2+2);
+    sg[sid][i]=sg[sid][i*2+1]+sg[sid][i*2+2];
+    }
+void cle(int sid,int s,int e,int l,int r,int i=0){
+    if(s==l&&e==r)
+        sg[sid][i]=0;
+    if(!sg[sid][i])
+        return ;
+    int mid=(l+r)/2;
+    if(e<=mid)cle(sid,s,e,l,mid,i*2+1);
+    else if(mid<s)cle(sid,s,e,mid+1,r,i*2+2);
+    else cle(sid,s,mid,l,mid,i*2+1),cle(sid,mid+1,e,mid+1,r,i*2+2);
+    sg[sid][i]=sg[sid][i*2+1]+sg[sid][i*2+2];
+    }
+int qry(int sid,int s,int e,int l,int r,int i=0){
+    if((s==l&&e==r)||(!sg[sid][i]))
+        return sg[sid][i];
+    int mid=(l+r)/2;
+    if(e<=mid)return qry(sid,s,e,l,mid,i*2+1);
+    else if(mid<s)return qry(sid,s,e,mid+1,r,i*2+2);
+    else return qry(sid,s,mid,l,mid,i*2+1)+qry(sid,mid+1,e,mid+1,r,i*2+2);
+    }
+int len_to_root(int now){
+    int sid=sgid[now];
+    int ret=qry(sid,0,sgvp[now],0,ve[sid].size()-1);
+    if(fa[0][ve[sid][0]]!=ve[sid][0])
+        ret+=len_to_root(fa[0][ve[sid][0]]);
+    return ret;
+    }
+void cl(int now,int to){
+    int sid=sgid[now];
+    if(sid!=sgid[to])
+        cle(sid,0,sgvp[now],0,ve[sid].size()-1),cl(fa[0][ve[sid][0]],to);
+    else if(to!=now)
+        cle(sid,sgvp[to]+1,sgvp[now],0,ve[sid].size()-1);
+    }
+int lca(int a,int b){
+    if(lv[a]>lv[b])swap(a,b);
+    for(int x=lv[b]-lv[a],y=x&-x;y;x^=y,y=x&-x)
+        b=fa[__lg(y)][b];
+    if(a==b)return a;
+    for(int i=19;i>=0;i--)
+        if(fa[i][a]!=fa[i][b])
+            a=fa[i][a],b=fa[i][b];
+    if(a==b)throw("error");
+    if(fa[0][a]!=fa[0][b])throw("GG");
+    return fa[0][a];
+    }
+int main(){
+    int n,q;
+    scanf("%d%d",&n,&q);
+    for(int i=0;i<n;i++)
+        bs[i]=i;
+    for(int i=0;i<q;i++){
+        int t,a,b;
+        scanf("%d%d%d",&t,&a,&b);a--;b--;
+        qs[i]=pr(t,par(a,b));
+        if(t==1&&bos(a)!=bos(b)){
+            bs[bos(a)]=bs[bos(b)];
+            nod[a].push_back(b);
+            nod[b].push_back(a);
+            }
+        }
+    for(int i=0;i<n;i++)
+        if(!lv[i])
+            F(i,i);
+    sgnt=1;
+    for(int i=0;i<n;i++)
+        if(!sgid[i])	
+            G(i,sgnt++);
+    for(int i=1;i<sgnt;i++){
+        sg[i].resize(ve[i].size()*4),
+        mkt(i,0,ve[i].size()-1);
+        }
+    for(int i=0;i<n;i++)
+        bs[i]=i;
+    for(int i=0;i<q;i++){
+        int t=qs[i].f,a=qs[i].s.f,b=qs[i].s.s;
+        if(t==1){
+            if(bos(a)!=bos(b))
+                bs[bos(a)]=bs[bos(b)];
+            else{
+                int c=lca(a,b);
+                cl(a,c),cl(b,c);
+                }
+            }
+        if(t==2){
+            if(bos(a)!=bos(b))
+                puts("-1");
+            else{
+                int c=lca(a,b);
+                printf("%d\n",len_to_root(a)+len_to_root(b)-len_to_root(c)*2);
+                }
+            }
+        }
+    return 0;
+    }
+
+//樹鍊剖分2
+typedef pair<int,int>par;
+typedef pair<par,int>pr;
+const int N=100005;
+vector<par> nod[N];
+int lv[N],fa[20][N],sz[N];
+int ar[N];
+int br[N];
+int cr[N];
+void F(int now,int f=0,int l=0){
+    lv[now]=l;
+    fa[0][now]=f;
+    for(int i=1;i<20;i++)
+        fa[i][now]=fa[i-1][fa[i-1][now]];
+    sz[now]=1;
+    int ms=nod[now].size();
+    for(int i=0;i<ms;i++){
+        int x=nod[now][i].f;
+        if(x==f){
+            ar[now]=nod[now][i].s;
+            swap(nod[now][i],nod[now].back());
+            nod[now].pop_back();
+            i--;ms--;
+            continue;
+            }
+        F(x,now,l+1);
+        sz[now]+=sz[x];
+        }
+    sort(nod[now].begin(),nod[now].end(),[&](par a,par b)->bool{return sz[b.f]<sz[a.f];});
+    }
+//vector<int>lnk[N];
+int lnhd[N];
+int lnid[N];
+int lncnt=0;
+int sgid[N];
+int sgcnt=0;
+void G(int now,int id){
+    cr[sgcnt]=ar[now];
+    sgid[now]=sgcnt++;
+    lnid[now]=id;
+    //lnk[id].push_back(now);
+    int ms=nod[now].size();
+    if(!ms)
+        return;
+    G(now[nod][0].f,id);
+    for(int i=1;i<ms;i++)
+        lnhd[lncnt]=nod[now][i].f,
+        G(nod[now][i].f,lncnt++);
+    }
+int lca(int a,int b){
+    if(lv[a]>lv[b])swap(a,b);
+    for(int x=lv[b]-lv[a],y=x&-x;y;x^=y,y=x&-x)
+        b=fa[__lg(y)][b];
+    if(a==b)return a;
+    for(int i=19;i>=0;i--)
+        if(fa[i][a]!=fa[i][b])
+            a=fa[i][a],b=fa[i][b];
+    return fa[0][a];
+    }
+void lis(vector<pr> &ve,int c,int a,int b){//a to b
+    while(lnid[a]!=lnid[b])
+        //ve.push_back(pr(par(sgid[lnk[lnid[a]][0]],sgid[a]),c)),
+        ve.push_back(pr(par(sgid[lnhd[lnid[a]]],sgid[a]),c)),
+        a=fa[0][lnhd[lnid[a]]];
+    if(a!=b)
+        ve.push_back(pr(par(sgid[b]+1,sgid[a]),c));
+    }
+int main(){
+    int t;
+    scanf("%d",&t);
+    while(t--){
+        int n,m;
+        scanf("%d%d",&n,&m);
+        m-=n-1;
+        for(int i=0;i<n;i++)
+            nod[i].clear();//lnk[i].clear();
+        for(int i=0;i<n-1;i++){
+            int a,b,c;
+            scanf("%d%d%d",&a,&b,&c);a--;b--;
+            nod[a].push_back(par(b,c));
+            nod[b].push_back(par(a,c));
+            }
+        F(0);
+        lncnt=0;
+        sgcnt=0;
+        lnhd[0]=0,G(0,lncnt++);
+        vector<pr> ve;
+        for(int i=0;i<m;i++){
+            int a,b,c;
+            scanf("%d%d%d",&a,&b,&c);a--;b--;
+            int p=lca(a,b);
+            lis(ve,c,a,p);
+            lis(ve,c,b,p);
+            }
+        sort(ve.begin(),ve.end());
+        priority_queue<par,vector<par>,greater<par>>pq;
+        int vp=0,vsz=ve.size();
+        for(int i=1;i<n;i++){
+            br[i]=0x7fffffff;
+            while(vp<vsz&&ve[vp].f.f==i){
+                pq.push(par(ve[vp].s,ve[vp].f.s));
+                vp++;
+                }
+            while(!pq.empty()&&pq.top().s<i)
+                pq.pop();
+            if(!pq.empty())
+                br[i]=pq.top().f;
+            }
+        int ans=0;
+        for(int i=1;i<n;i++)
+            if(br[i]<cr[i])
+                ans+=cr[i]-br[i];
+        printf("%d\n",ans);
+        }
+    return 0;
+    }
+
+
+//Modable Int
+struct Int{
+    long long int num;
+    Int(long long int x):num((x%MOD+MOD)%MOD){}
+    Int(int x):num((x%MOD+MOD)%MOD){}
+    Int():num(0){}
+    //operator bool(){return num;}
+    Int& operator+=(Int x){
+        num=(num+x.num)%MOD;
+        return *this;
+        }
+    Int operator+(Int x){
+        Int ret((num+x.num)%MOD);
+        return ret;
+        }
+    Int& operator-=(Int x){
+        num=((num-x.num)%MOD+MOD)%MOD;
+        return *this;
+        }
+    Int operator-(Int x){
+        Int ret(((num-x.num)%MOD+MOD)%MOD);
+        return ret;
+        }
+    Int& operator*=(Int x){
+        num=(num*x.num)%MOD;
+        return *this;
+        }
+    Int operator*(Int x){
+        Int ret((num*x.num)%MOD);
+        return ret;
+        }
+    };
+
+
+	
