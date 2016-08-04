@@ -1001,23 +1001,22 @@ int dinic(int s,int t){
     }
 
 //Flow O(V^3)
-const int N=105;
-int mp[N][N];
+int mp[N][N]; //this is input
 int fl[N][N];
 int d[N],e[N];
 int q[N*N],*qb,*qe;
 bool iq[N];
-int n;
+int n; //this is input
 void preflow(int s,int t){
     for(int j=0;j<n;j++)
-        if(mp[s][j]&&j!=s){
-            e[j]=mp[s][j];
-            fl[s][j]+=e[j];
-            fl[j][s]-=e[j];
+        if(mp[s][j]-fl[s][j]&&j!=s){
+            int f=mp[s][j]-fl[s][j];
+            e[j]+=f;
+            fl[s][j]+=f;
+            fl[j][s]-=f;
             if(j!=s&&j!=t&&!iq[j])*qe++=j,iq[j]=true;
             }
     }
-
 void push(int i, int j){
     int f=min(e[i],mp[i][j]-fl[i][j]);
     e[i]-=f;
@@ -1025,7 +1024,6 @@ void push(int i, int j){
     fl[i][j]+=f;
     fl[j][i]-=f;
     }
-
 void relabel(int i){
     for(int j=0;j<n;j++)
         if(mp[i][j]-fl[i][j])
@@ -1043,11 +1041,12 @@ void discharge(int i,int s,int t){
         relabel(i);
         }
     }
-int flow(int s, int t){
-    memset(d,0,sizeof(d));
+int max_flow(int s, int t,bool clean=true){
+    if(clean)
+        memset(fl,0,sizeof(fl));
     memset(e,0,sizeof(e));
+    memset(d,0,sizeof(d));
     memset(iq,0,sizeof(iq));
-    memset(fl,0,sizeof(fl));
     qb=qe=q;
     d[s]=n-1;
     preflow(s,t);
@@ -1058,6 +1057,40 @@ int flow(int s, int t){
             discharge(i,s,t);
         }
     return e[t];
+    }
+int lf[N][N],uf[N][N]; //lf<=fl<=uf //this is input
+int du[N];
+bool bounded_flow_ok(){
+    for(int i=0;i<n;i++)
+        du[i]=0; //du[x]=lf[*][x]-lf[x][*]
+    memset(mp,0,sizeof(mp));
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++)
+            mp[i][j]=uf[i][j]-lf[i][j],
+            du[j]+=lf[i][j],
+            du[i]-=lf[i][j];
+    int sum=0;
+    for(int i=0;i<n;i++){
+        if(du[i]>0)
+            mp[n][i]=du[i],sum+=du[i];
+        else if(du[i]<0)
+            mp[i][n+1]=-du[i];
+    }
+    n+=2;
+    int res=max_flow(n-2,n-1);
+    n-=2;
+    return res==sum;
+    }
+int bounded_flow(int s,int t){
+    uf[t][s]=0x7fffffff;
+    lf[t][s]=0;
+    if(!bounded_flow_ok())return -1;
+    int ans=fl[t][s];
+    fl[s][t]+=fl[t][s];
+    fl[t][s]=0;
+    mp[t][s]=0;
+    ans+=max_flow(s,t,false);
+    return ans;
     }
 
 //link-cut-treap O(lg^2 N)
