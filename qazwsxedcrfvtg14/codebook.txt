@@ -1672,5 +1672,11 @@ struct Int{
         }
     };
 
-
-	
+//某輸入輸出優化
+#define qbs 10000100
+inline char getc(){ static char buf[qbs];static unsigned int q=qbs; if(qbs==q) fread(buf,qbs,1,stdin),q=0; return buf[q++]; }
+inline void readuint(unsigned int& a){ a=0; char p=getc(); while(p>'9' || p<'0') p=getc(); while(p<='9'&&p>='0') a=a*10+p-'0',p=getc(); }
+inline void readuint(unsigned long long& a){ a=0; char p=getc(); while(p>'9' || p<'0') p=getc(); while(p<='9'&&p>='0') a=a*10+p-'0',p=getc(); }
+inline void putc(char p,bool e=0){ static char buf[qbs+10];static unsigned int q=0; if(~p) buf[q++]=p; if((e&&q) || qbs==q) fwrite(buf,q,1,stdout),q=0; }
+inline void printuint(unsigned int a){if(a>=10) printuint(a/10); putc(a%10+'0');}
+inline void printuint(unsigned long long a){if(a>=10) printuint(a/10); putc(a%10+'0');}
