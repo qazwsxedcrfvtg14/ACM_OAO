@@ -443,9 +443,9 @@ void split(ptr now,int k,ptr &a,ptr &b){
     else
         b=now,b->push(),split(now->l,k,a,b->l),b->pull();
     }
-struct tree{
+struct treap{
 	ptr root;
-	tree(){root=nil;}
+	treap(){root=nil;}
 	void insert(int k){
 		ptr a=nil,b=nil;
 		split(root,k,a,b);
@@ -1680,3 +1680,87 @@ inline void readuint(unsigned long long& a){ a=0; char p=getc(); while(p>'9' || 
 inline void putc(char p,bool e=0){ static char buf[qbs+10];static unsigned int q=0; if(~p) buf[q++]=p; if((e&&q) || qbs==q) fwrite(buf,q,1,stdout),q=0; }
 inline void printuint(unsigned int a){if(a>=10) printuint(a/10); putc(a%10+'0');}
 inline void printuint(unsigned long long a){if(a>=10) printuint(a/10); putc(a%10+'0');}
+
+//黑魔法樹(可split/join/update)
+#pragma GCC optimize ("O3")
+#include<bits/stdc++.h>
+//#include <ext/pb_ds/detail/standard_policies.hpp>
+#include<ext/pb_ds/assoc_container.hpp>
+#include<ext/pb_ds/hash_policy.hpp>
+//#include<ext/pb_ds/priority_queue.hpp>
+#include<ext/pb_ds/tree_policy.hpp>
+#include<ext/rope>
+#pragma GCC optimize ("O3")
+//#pragma GCC diagnostic error "-std=c++14"
+#define tu(x,y) get<y>(x)
+#define f first
+#define s second
+using namespace std;
+using namespace __gnu_pbds;
+using namespace __gnu_cxx;
+typedef pair<int,int>par;
+typedef pair<int,par>pr;
+typedef tuple<int,int,int>tup;
+typedef pair<int&,int&>pa;
+struct meta{
+    int size=0;
+    int val=0;
+    };
+template<class CNod,class Nod,class Cmp,class _>
+struct my_node_update{
+    typedef meta metadata_type;
+    virtual CNod node_begin() const = 0;
+    virtual CNod node_end() const = 0;
+    void operator()(Nod it, CNod end_it){
+        auto l=it.get_l_child();
+        auto r=it.get_r_child();
+        metadata_type left,right;
+        if(l!=end_it) left =l.get_metadata();
+        if(r!=end_it) right=r.get_metadata();
+        const_cast<metadata_type&>(it.get_metadata()).size=left.size+right.size+1;
+        const_cast<metadata_type&>(it.get_metadata()).val=max(((*it)->s),max(left.val,right.val));
+        //const_cast<metadata_type&>(it.get_metadata()).val=max(**it,max(left.val,right.val));
+        }
+    int order_of_key(int x){
+        int ans=0;
+        auto it=node_begin();
+        while(it!=node_end()){
+            auto l=it.get_l_child();
+            auto r=it.get_r_child();
+            if(Cmp()(x,(*it)->f)){
+            //if(Cmp()(x,**it)){
+                it=l;
+                }
+            else{
+                ans++;
+                if(l!=node_end()) ans+=l.get_metadata().size;
+                it=r;
+                }
+            }
+        return ans;
+        }
+    int qry(){
+        int ans=-1;
+        auto it=node_begin();
+        if(it!=node_end())
+            ans=it.get_metadata().val;
+        return ans;
+        }
+    };
+int main(){
+    //tree<int,int,less<int>,rb_tree_tag,my_node_update>tre;
+    //tree<int,int,less<int>,rb_tree_tag,tree_order_statistics_node_update>tre;
+    tree<int,int,less<int>,rb_tree_tag,my_node_update>tre,tr2;
+    for(int i=0;i<1000000;i++)
+        tre.insert(par(i,i));
+    printf("%d %d\n",tre.qry(),tr2.qry());
+    tre.split(500,tr2);
+    printf("%d %d\n",tre.size(),tr2.size());
+    printf("%d %d\n",tre.qry(),tr2.qry());
+    tre.join(tr2);
+    printf("%d %d\n",tre.qry(),tr2.qry());
+    //tre.insert(par(0,0));
+    //tre.order_of_key(0);
+    //tre.find_by_order(0);
+    return 0;
+    }
