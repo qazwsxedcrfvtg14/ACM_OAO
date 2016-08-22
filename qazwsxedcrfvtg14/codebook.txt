@@ -1764,3 +1764,71 @@ int main(){
     //tre.find_by_order(0);
     return 0;
     }
+
+//Directed_MST
+const int N=305;
+const int inf=0x7fffffff;
+struct edge{
+	int u,v,w;
+    };
+int in[N],num[N],pre[N],vis[N];
+edge edg[N*N];
+int Directed_MST(int s,int n,int m){
+	int ans=0;
+	for(int i=0;i<m;i++){
+        if(edg[i].u==edg[i].v)
+            ans+=min(0,edg[i].w),
+            swap(edg[i],edg[--m]),i--;
+        }
+    while(true){
+		for(int i=0;i<n;i++)
+			in[i]=inf;
+		for(int i=0;i<m;i++){
+			int &u=edg[i].u;
+			int &v=edg[i].v;
+			if(edg[i].w<in[v]){
+				pre[v]=u;
+				in[v]=edg[i].w;
+                }
+            }
+		for(int i=0;i<n;i++)
+			if(in[i]==inf&&i!=s)
+				return -1;
+		int cnt=0;
+		fill(num,num+n,-1);
+		fill(vis,vis+n,-1);
+ 		in[s]=0;
+ 		for(int i=0;i<n;i++){
+ 			ans+=in[i];
+ 			int v=i;
+ 			while(!~vis[v]&&v!=s){
+ 				vis[v]=i;
+ 				v=pre[v];
+                }
+ 			if(v!=s&&vis[v]==i){
+ 				for(int u=pre[v];u!=v;u=pre[u])
+ 					num[u]=cnt;
+ 				num[v]=cnt++;
+                }
+            }
+ 		if(!cnt)
+ 			break;
+ 		for(int i=0;i<n;i++)
+ 			if(!~num[i])
+ 				num[i]=cnt++;
+ 		for(int i=0;i<m;){
+ 			int &u=edg[i].u;
+ 			int &v=edg[i].v;
+ 			int ov=v;
+ 			u=num[u];
+ 			v=num[v];
+ 			if(u!=v)
+ 				edg[i++].w-=in[ov];
+            else
+                swap(edg[i],edg[--m]);
+            }
+ 		n=cnt;
+ 		s=num[s];
+        }
+ 	return ans;
+    }
