@@ -1,54 +1,54 @@
 ﻿//bit binary indexed tree  //index 1~n
 void insert(int a,int val){
-	while(a<=n){
-		bit[a]+=val;
-		a+=a&-a;
-		}
+    while(a<=n){
+        bit[a]+=val;
+        a+=a&-a;
+        }
 }
 int sum(int a){          //query sum [1,a]
-	int ans=0;
-	while(a){
-		ans+=bit[a];
-		a-=a&-a;
-		}
-	return ans;
+    int ans=0;
+    while(a){
+        ans+=bit[a];
+        a-=a&-a;
+        }
+    return ans;
 }
 
 //線段樹
 int max(int a,int b){return a>b?a:b;}
 void mkt(int idx,int L,int R){
-	if(L==R){tree[idx]=ar[L];return;}
-	int mid=L+R>>1,lidx=idx*2+1;
-	mkt(lidx,L,mid);
-	mkt(lidx+1,mid+1,R);
-	tree[idx]=max(tree[lidx],tree[lidx+1]);
+    if(L==R){tree[idx]=ar[L];return;}
+    int mid=L+R>>1,lidx=idx*2+1;
+    mkt(lidx,L,mid);
+    mkt(lidx+1,mid+1,R);
+    tree[idx]=max(tree[lidx],tree[lidx+1]);
 }
 int qry(int idx,int L,int R,int x,int y){
-	if(y<L||x>R)return -100000;
-	if(L>=x&&R<=y)return tree[idx];
-	int mid=L+R>>1,lidx=idx*2+1;
-	return max(qry(lidx,L,mid,x,y),qry(lidx+1,mid+1,R,x,y));
+    if(y<L||x>R)return -100000;
+    if(L>=x&&R<=y)return tree[idx];
+    int mid=L+R>>1,lidx=idx*2+1;
+    return max(qry(lidx,L,mid,x,y),qry(lidx+1,mid+1,R,x,y));
 }
 mkt(0,0,n-1);
 scanf("%d",&m);
 while(m--){
-	int i,j;
-	scanf("%d%d",&i,&j);
-	if(i>j){int l=i;i=j;j=l;}
-	printf("%d\n",qry(0,0,n-1,i-1,j-1));
-	}
+    int i,j;
+    scanf("%d%d",&i,&j);
+    if(i>j){int l=i;i=j;j=l;}
+    printf("%d\n",qry(0,0,n-1,i-1,j-1));
+    }
 void make(int n){            //區間最大最小值
     for(int i=0; i<n;i++)
         v1[0][i]=ar[i],v2[0][i]=ar[i];
     for(int i=1;(1<<i)<=n;i++)
         for(int j=0;j+(1<<i)<=n;j++)
             v1[i][j]=min(v1[i-1][j],v1[i-1][j+(1<<(i-1))]),v2[i][j]=max(v2[i-1][j],v2[i-1][j+(1<<(i-1))]);
-	return;
-	}
+    return;
+    }
 unsigned int qry(int a,int b){  //查詢區間最大最小值
     int p = 31 - __builtin_clz(abs(b-a)+1);
     return max(v2[p][a],v2[p][b-(1<<p)+1])-min(v1[p][a],v1[p][b-(1<<p)+1]);
-	}
+    }
 
 //畢氏數特性：
 (m,n)=1
@@ -56,13 +56,13 @@ m^2-n^2, 2mn, m^2+n^2
 
 //最大公因數
 int gcd(int a,int b){
-	int c;
-	while(b!=0){
-		a%=b;
-		c=a;a=b;b=c;
-		}
-	return a;
-	}
+    int c;
+    while(b!=0){
+        a%=b;
+        c=a;a=b;b=c;
+        }
+    return a;
+    }
 
 //模逆元
 long long int inverse(long long int a, long long int m){ 
@@ -71,10 +71,10 @@ long long int inverse(long long int a, long long int m){
         q=d/a,r=d%a;
         d=a,a=r;
         t=x-q*s,x=s,s=t;
-		}
+        }
     if(d!=1)return -1;  // 沒有倒數、無法整除
     return(x+m)%m;
-	}	
+    }	
 
 //擴展歐基理德
 //ax+by==gcd(a,b)的解
@@ -98,103 +98,103 @@ LL modInv (LL a, LL m) {
 const int N=1000;
 struct Bnum{
     char num[N+1];
-	bool operator>(Bnum &B2){
-		for(int i=N;i>=0;i--)
-			if(num[i]<B2.num[i]){return 0;}
-			else if(num[i]>B2.num[i])return 1;
+    bool operator>(Bnum &B2){
+        for(int i=N;i>=0;i--)
+            if(num[i]<B2.num[i]){return 0;}
+            else if(num[i]>B2.num[i])return 1;
         return 0;
-		}
-	bool operator<(Bnum &B2){
-		for(int i=N;i>=0;i--)
-			if(num[i]>B2.num[i])return 0;
-			else if(num[i]<B2.num[i])return 1;
+        }
+    bool operator<(Bnum &B2){
+        for(int i=N;i>=0;i--)
+            if(num[i]>B2.num[i])return 0;
+            else if(num[i]<B2.num[i])return 1;
         return 0;
-		}
-	bool operator==(Bnum &B2){
-		for(int i=0;i<=N;i++)
-			if(num[i]!=B2.num[i])return 0;
+        }
+    bool operator==(Bnum &B2){
+        for(int i=0;i<=N;i++)
+            if(num[i]!=B2.num[i])return 0;
         return 1;
-		}
+        }
     bool operator!=(Bnum &B2){
         return !operator==(B2);
-		}
+        }
     void operator=(Bnum B2){
         for(int i=0;i<=N;i++)
-			num[i]=B2.num[i];
-		}
-	void operator=(int a){
-		(*this).clear();
+            num[i]=B2.num[i];
+        }
+    void operator=(int a){
+        (*this).clear();
         for(int i=0;i<=N;i++){
-			num[i]=a%10;
-			a/=10;
-			if(!a)break;
-			}
-		}
-	void operator+=(Bnum &B2){
+            num[i]=a%10;
+            a/=10;
+            if(!a)break;
+            }
+        }
+    void operator+=(Bnum &B2){
         for(int i=0;i<=N;i++)
-			num[i]+=B2.num[i];
+            num[i]+=B2.num[i];
         for(int i=0;i<N;i++)
-			if(num[i]>=10){num[i]-=10;num[i+1]++;}
-		}
-	void operator-=(Bnum &B2){
+            if(num[i]>=10){num[i]-=10;num[i+1]++;}
+        }
+    void operator-=(Bnum &B2){
         for(int i=0;i<=N;i++)
-			num[i]-=B2.num[i];
+            num[i]-=B2.num[i];
         for(int i=0;i<N;i++)
-			if(num[i]<0){num[i]+=10;num[i+1]--;}
-		}
-	void operator*=(Bnum B2){
-		Bnum B3;
-		if(num[N]<0||B2.num[N]<0){
-			int bol=0;
-			Bnum B4,B5;
-			B4.clear();
-			if(B2.num[N]<0)B4-=B2,bol++;
-			else B4=B2;
-			if(num[N]<0){bol++;
-				for(int i=0;i<=N;i++)
-					B5.num[i]=-num[i];
-				for(int i=0;i<N;i++)
-					if(B5.num[i]<0){B5.num[i]+=10;B5.num[i+1]--;}
-				}
-			else{
-				for(int i=0;i<=N;i++)
-					B5.num[i]=num[i];
-				}
-			B4*=B5;
-			if(bol%2){
-				for(int i=0;i<=N;i++)
-					num[i]=-B4.num[i];
-				for(int i=0;i<N;i++)
-					if(num[i]<0){num[i]+=10;num[i+1]--;}
-				return;
-				}
-			for(int i=0;i<=N;i++)
-				num[i]=B4.num[i];
-			return;
-			}
+            if(num[i]<0){num[i]+=10;num[i+1]--;}
+        }
+    void operator*=(Bnum B2){
+        Bnum B3;
+        if(num[N]<0||B2.num[N]<0){
+            int bol=0;
+            Bnum B4,B5;
+            B4.clear();
+            if(B2.num[N]<0)B4-=B2,bol++;
+            else B4=B2;
+            if(num[N]<0){bol++;
+                for(int i=0;i<=N;i++)
+                    B5.num[i]=-num[i];
+                for(int i=0;i<N;i++)
+                    if(B5.num[i]<0){B5.num[i]+=10;B5.num[i+1]--;}
+                }
+            else{
+                for(int i=0;i<=N;i++)
+                    B5.num[i]=num[i];
+                }
+            B4*=B5;
+            if(bol%2){
+                for(int i=0;i<=N;i++)
+                    num[i]=-B4.num[i];
+                for(int i=0;i<N;i++)
+                    if(num[i]<0){num[i]+=10;num[i+1]--;}
+                return;
+                }
+            for(int i=0;i<=N;i++)
+                num[i]=B4.num[i];
+            return;
+            }
         for(int i=0;i<=N;i++)
-			B3.num[i]=num[i],num[i]=0;
+            B3.num[i]=num[i],num[i]=0;
         for(int i=0;i<(N>>1);i++)
-			for(int j=0;j<(N>>1);j++){
-				num[i+j]+=B2.num[i]*B3.num[j];
-				if(num[i+j]>=10){num[i+j+1]+=num[i+j]/10;num[i+j]%=10;}
-				}
+            for(int j=0;j<(N>>1);j++){
+                num[i+j]+=B2.num[i]*B3.num[j];
+                if(num[i+j]>=10){num[i+j+1]+=num[i+j]/10;num[i+j]%=10;}
+                }
         for(int i=0;i<N;i++)
-			if(num[i]>=10){num[i+1]+=num[i]/10;num[i]%=10;}
-		}
-	void operator<<=(int a){
-		for(int i=N;i>=a;i--)
-			num[i]=num[i-a];
-		for(int i=0;i<a;i++)
-			num[i]=0;
-		}
-	void operator>>=(int a){
-		for(int i=0;i<=N-a;i++)
-			num[i]=num[i+a];
-		for(int i=N-a+1;i<=N;i++)
-			num[i]=0;
-		}
-	Bnum operator/(Bnum &B2){
+            if(num[i]>=10){num[i+1]+=num[i]/10;num[i]%=10;}
+        }
+    void operator<<=(int a){
+        for(int i=N;i>=a;i--)
+            num[i]=num[i-a];
+        for(int i=0;i<a;i++)
+            num[i]=0;
+        }
+    void operator>>=(int a){
+        for(int i=0;i<=N-a;i++)
+            num[i]=num[i+a];
+        for(int i=N-a+1;i<=N;i++)
+            num[i]=0;
+        }
+    Bnum operator/(Bnum &B2){
         Bnum k,ans,t,zero,tmp;
         zero.clear();
         t=1;
@@ -202,88 +202,88 @@ struct Bnum{
         tmp=(*this);
         ans.clear();
         while(k<(*this)||k==(*this)){
-			k<<=1;
-			t<<=1;
-			}
-		k>>=1;
-		t>>=1;
-		while(t!=zero){
-			while(tmp>k||tmp==k){
-				tmp-=k;
-				ans+=t;
-				}
-			t>>=1;
-			k>>=1;
-			}
-		return ans;
+            k<<=1;
+            t<<=1;
+            }
+        k>>=1;
+        t>>=1;
+        while(t!=zero){
+            while(tmp>k||tmp==k){
+                tmp-=k;
+                ans+=t;
+                }
+            t>>=1;
+            k>>=1;
+            }
+        return ans;
         }
-	void clear(){
-		for(int i=0;i<=N;i++)
-			num[i]=0;
-		}
-	void print(){
-		bool zero=0,rem=0;
-		char output[N+10];
-		int place;
-		Bnum tmp;
-		if(num[N]<0){
-			for(int i=0;i<=N;i++)
-				tmp.num[i]=num[i];
-			for(int i=0;i<=N;i++)
-				num[i]=-num[i];
-			for(int i=0;i<N;i++)
-				if(num[i]<0){num[i]+=10;num[i+1]--;}
-			rem=1;
-			}
+    void clear(){
+        for(int i=0;i<=N;i++)
+            num[i]=0;
+        }
+    void print(){
+        bool zero=0,rem=0;
+        char output[N+10];
+        int place;
+        Bnum tmp;
+        if(num[N]<0){
+            for(int i=0;i<=N;i++)
+                tmp.num[i]=num[i];
+            for(int i=0;i<=N;i++)
+                num[i]=-num[i];
+            for(int i=0;i<N;i++)
+                if(num[i]<0){num[i]+=10;num[i+1]--;}
+            rem=1;
+            }
         int op=0;
-		for(int i=N-1;i>=0;i--){
-			if(zero==1){
+        for(int i=N-1;i>=0;i--){
+            if(zero==1){
                 output[op++]=num[i]+'0';
                 }
-			else if(num[i]!=0){
+            else if(num[i]!=0){
                 output[op++]=num[i]+'0';
-				zero=1;
-				}
-			}
+                zero=1;
+                }
+            }
         output[op++]=0;
-		if(zero==0)printf("0");
-		else if(rem){
+        if(zero==0)printf("0");
+        else if(rem){
             putchar('-');
             printf(output);
-			for(int i=0;i<=N;i++)
-				num[i]=tmp.num[i];
-			}
-		else{
+            for(int i=0;i<=N;i++)
+                num[i]=tmp.num[i];
+            }
+        else{
             printf(output);
-			}
-		}
-	bool scan(){
-		char input[N];
-		int tmp=0;
-		if(!(~scanf("%s",input)))return 0;
-		if(input[0]=='-'){tmp=1;}
-		int len=strlen(input);
-		for(int i=0;i<=N;i++)
-			num[i]=0;
-		for(int i=tmp;i<len;i++)
-			num[i-tmp]=input[len-(i-tmp)-1]-'0';
-		if(tmp){
-			for(int i=0;i<=N;i++)
-				num[i]=-num[i];
-			for(int i=0;i<N;i++)
-				if(num[i]<0){num[i]+=10;num[i+1]--;}
-			}
-		return 1;
-		}
-	};
+            }
+        }
+    bool scan(){
+        char input[N];
+        int tmp=0;
+        if(!(~scanf("%s",input)))return 0;
+        if(input[0]=='-'){tmp=1;}
+        int len=strlen(input);
+        for(int i=0;i<=N;i++)
+            num[i]=0;
+        for(int i=tmp;i<len;i++)
+            num[i-tmp]=input[len-(i-tmp)-1]-'0';
+        if(tmp){
+            for(int i=0;i<=N;i++)
+                num[i]=-num[i];
+            for(int i=0;i<N;i++)
+                if(num[i]<0){num[i]+=10;num[i+1]--;}
+            }
+        return 1;
+        }
+    };
 
 int main(){
-	string s;
+    string s;
     while(cin>>s){
         sort(s.begin(),s.end());
         do{
-			printf("%s\n",&s[0]);
-			}while(next_permutation(s.begin(),s.end()));
+            printf("%s\n",&s[0]);
+            }while(next_permutation(s.begin(),s.end()));
         }
     return 0;
     }
@@ -320,60 +320,60 @@ int query(int a, int b){
 }
 
 //KMP
-	while(~scanf("%s",s)){
-		int len=strlen(s);
-		for(int i=0;i<len;i++){
-			ss[len-i-1]=s[i];
-			}
-		ss[len]=0;
-		dp[0]=-1;
-		for(int i=1;i<len;i++){
-			int p=dp[i-1];
-			while(p!=-1&&ss[p+1]!=ss[i]){
-				p=dp[p];
-			}
-			if(ss[p+1]!=ss[i])dp[i]=-1;
-			else
-				dp[i]=p+1;
-		}
-		int p=0;
-		for(int i=0;i<len;i++){
-			if(s[i]==ss[p]){
-				p++;
-				}
-			else{
-				if(p!=0){
-					p=dp[p-1]+1;
-					i--;
-					}
-				}
-			}
-		printf("%s%s ",s,ss+p);
-		}
+    while(~scanf("%s",s)){
+        int len=strlen(s);
+        for(int i=0;i<len;i++){
+            ss[len-i-1]=s[i];
+            }
+        ss[len]=0;
+        dp[0]=-1;
+        for(int i=1;i<len;i++){
+            int p=dp[i-1];
+            while(p!=-1&&ss[p+1]!=ss[i]){
+                p=dp[p];
+            }
+            if(ss[p+1]!=ss[i])dp[i]=-1;
+            else
+                dp[i]=p+1;
+        }
+        int p=0;
+        for(int i=0;i<len;i++){
+            if(s[i]==ss[p]){
+                p++;
+                }
+            else{
+                if(p!=0){
+                    p=dp[p-1]+1;
+                    i--;
+                    }
+                }
+            }
+        printf("%s%s ",s,ss+p);
+        }
 
 //SA+H
 const int N=100005;
 int n,SA[N],rk[2][N];
 char s[N];
 void mak_SA(){
-	n=strlen(s);n++;
-	for(int i=0;i<n;i++)
-		rk[0][i]=s[i],SA[i]=i;
-	for(int k=0;(1<<k)<n;k++){
+    n=strlen(s);n++;
+    for(int i=0;i<n;i++)
+        rk[0][i]=s[i],SA[i]=i;
+    for(int k=0;(1<<k)<n;k++){
         int pri=k&1,now=~k&1;
-		sort(SA,SA+n,[&pri,&k](int a,int b){
+        sort(SA,SA+n,[&pri,&k](int a,int b){
             if(rk[pri][a]==rk[pri][b])return rk[pri][a+(1<<k)]<rk[pri][b+(1<<k)];
             return rk[pri][a]<rk[pri][b];
             });
-		int cnt=0;
-		rk[now][SA[0]]=cnt;
-		for(int i=1;i<n;i++){
-			cnt+=(rk[pri][SA[i-1]]!=rk[pri][SA[i]]) || (rk[pri][SA[i-1]+(1<<k)]!=rk[pri][SA[i]+(1<<k)]);
-			rk[now][SA[i]]=cnt;
-			}
+        int cnt=0;
+        rk[now][SA[0]]=cnt;
+        for(int i=1;i<n;i++){
+            cnt+=(rk[pri][SA[i-1]]!=rk[pri][SA[i]]) || (rk[pri][SA[i-1]+(1<<k)]!=rk[pri][SA[i]+(1<<k)]);
+            rk[now][SA[i]]=cnt;
+            }
         if(cnt==n)return;
-		}
-	}
+        }
+    }
 void mak_SA2(){//buggy
     n=strlen(s);
     int *rnk=rk1,*rp=rk2;
@@ -444,43 +444,43 @@ void split(ptr now,int k,ptr &a,ptr &b){
         b=now,b->push(),split(now->l,k,a,b->l),b->pull();
     }
 struct treap{
-	ptr root;
-	treap(){root=nil;}
-	void insert(int k){
-		ptr a=nil,b=nil;
-		split(root,k,a,b);
-		root=merge(merge(a,new node(k)),b);
-		}
-	void erase(int k){
-		ptr a=nil,b=nil,c=nil;
-		split(root,k-1,a,b);
-		split(b,k,b,c);
-		delete b;
-		root=merge(a,c);
-		}
-	ptr kth(ptr rot,unsigned int k){//0base
-		if(k<rot->l->sz)return kth(rot->l,k);
-		if(k==rot->l->sz)return rot;
-		return kth(rot->r,k-rot->l->sz-1);
-		}
-	ptr operator[](unsigned int k){
-		if(k>=root->sz)return nil;
-		return kth(root,k);
-		}
-	ptr lower_bound(int k){
-		ptr now=root,pri=nil;
-		while(now!=nil)
-			if(k<=now->v)pri=now,now=now->l;
-			else now=now->r;
-		return pri;
-		}
-	ptr upper_bound(int k){
-		ptr now=root,pri=nil;
-		while(now!=nil)
-			if(k<now->v)pri=now,now=now->r;
-			else now=now->l;
-		return pri;
-		}
+    ptr root;
+    treap(){root=nil;}
+    void insert(int k){
+        ptr a=nil,b=nil;
+        split(root,k,a,b);
+        root=merge(merge(a,new node(k)),b);
+        }
+    void erase(int k){
+        ptr a=nil,b=nil,c=nil;
+        split(root,k-1,a,b);
+        split(b,k,b,c);
+        delete b;
+        root=merge(a,c);
+        }
+    ptr kth(ptr rot,unsigned int k){//0base
+        if(k<rot->l->sz)return kth(rot->l,k);
+        if(k==rot->l->sz)return rot;
+        return kth(rot->r,k-rot->l->sz-1);
+        }
+    ptr operator[](unsigned int k){
+        if(k>=root->sz)return nil;
+        return kth(root,k);
+        }
+    ptr lower_bound(int k){
+        ptr now=root,pri=nil;
+        while(now!=nil)
+            if(k<=now->v)pri=now,now=now->l;
+            else now=now->r;
+        return pri;
+        }
+    ptr upper_bound(int k){
+        ptr now=root,pri=nil;
+        while(now!=nil)
+            if(k<now->v)pri=now,now=now->r;
+            else now=now->l;
+        return pri;
+        }
     };
 
 //二分圖匹配
@@ -1769,66 +1769,66 @@ int main(){
 const int N=305;
 const int inf=0x7fffffff;
 struct edge{
-	int u,v,w;
+    int u,v,w;
     };
 int in[N],num[N],pre[N],vis[N];
 edge edg[N*N];
 int Directed_MST(int s,int n,int m){
-	int ans=0;
-	for(int i=0;i<m;i++){
+    int ans=0;
+    for(int i=0;i<m;i++){
         if(edg[i].u==edg[i].v)
             ans+=min(0,edg[i].w),
             swap(edg[i],edg[--m]),i--;
         }
     while(true){
-		for(int i=0;i<n;i++)
-			in[i]=inf;
-		for(int i=0;i<m;i++){
-			int &u=edg[i].u;
-			int &v=edg[i].v;
-			if(edg[i].w<in[v]){
-				pre[v]=u;
-				in[v]=edg[i].w;
+        for(int i=0;i<n;i++)
+            in[i]=inf;
+        for(int i=0;i<m;i++){
+            int &u=edg[i].u;
+            int &v=edg[i].v;
+            if(edg[i].w<in[v]){
+                pre[v]=u;
+                in[v]=edg[i].w;
                 }
             }
-		for(int i=0;i<n;i++)
-			if(in[i]==inf&&i!=s)
-				return -1;
-		int cnt=0;
-		fill(num,num+n,-1);
-		fill(vis,vis+n,-1);
- 		in[s]=0;
- 		for(int i=0;i<n;i++){
- 			ans+=in[i];
- 			int v=i;
- 			while(!~vis[v]&&v!=s){
- 				vis[v]=i;
- 				v=pre[v];
+        for(int i=0;i<n;i++)
+            if(in[i]==inf&&i!=s)
+                return -1;
+        int cnt=0;
+        fill(num,num+n,-1);
+        fill(vis,vis+n,-1);
+         in[s]=0;
+         for(int i=0;i<n;i++){
+             ans+=in[i];
+             int v=i;
+             while(!~vis[v]&&v!=s){
+                 vis[v]=i;
+                 v=pre[v];
                 }
- 			if(v!=s&&vis[v]==i){
- 				for(int u=pre[v];u!=v;u=pre[u])
- 					num[u]=cnt;
- 				num[v]=cnt++;
+             if(v!=s&&vis[v]==i){
+                 for(int u=pre[v];u!=v;u=pre[u])
+                     num[u]=cnt;
+                 num[v]=cnt++;
                 }
             }
- 		if(!cnt)
- 			break;
- 		for(int i=0;i<n;i++)
- 			if(!~num[i])
- 				num[i]=cnt++;
- 		for(int i=0;i<m;){
- 			int &u=edg[i].u;
- 			int &v=edg[i].v;
- 			int ov=v;
- 			u=num[u];
- 			v=num[v];
- 			if(u!=v)
- 				edg[i++].w-=in[ov];
+         if(!cnt)
+             break;
+         for(int i=0;i<n;i++)
+             if(!~num[i])
+                 num[i]=cnt++;
+         for(int i=0;i<m;){
+             int &u=edg[i].u;
+             int &v=edg[i].v;
+             int ov=v;
+             u=num[u];
+             v=num[v];
+             if(u!=v)
+                 edg[i++].w-=in[ov];
             else
                 swap(edg[i],edg[--m]);
             }
- 		n=cnt;
- 		s=num[s];
+         n=cnt;
+         s=num[s];
         }
- 	return ans;
+     return ans;
     }
