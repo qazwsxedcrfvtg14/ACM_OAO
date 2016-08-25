@@ -483,7 +483,7 @@ struct treap{
         }
     };
 
-//二分圖匹配
+//二分圖匹配 //可用Dinic，時間複雜度更低O(EsqrtV)
 bool mp[1005][1005];
 int go[1005];
 bool used[1005];
@@ -1641,11 +1641,11 @@ int main(){
 
 //Modable Int
 struct Int{
-    long long int num;
+    int num;
     Int(long long int x):num((x%MOD+MOD)%MOD){}
     Int(int x):num((x%MOD+MOD)%MOD){}
     Int():num(0){}
-    //operator bool(){return num;}
+    explicit operator int&(){return num;}
     Int& operator+=(Int x){
         num=(num+x.num)%MOD;
         return *this;
@@ -1663,11 +1663,11 @@ struct Int{
         return ret;
         }
     Int& operator*=(Int x){
-        num=(num*x.num)%MOD;
+        num=(1ll*num*x.num)%MOD;
         return *this;
         }
     Int operator*(Int x){
-        Int ret((num*x.num)%MOD);
+        Int ret((1ll*num*x.num)%MOD);
         return ret;
         }
     };
@@ -1827,8 +1827,91 @@ int Directed_MST(int s,int n,int m){
             else
                 swap(edg[i],edg[--m]);
             }
-         n=cnt;
-         s=num[s];
+        n=cnt;
+        s=num[s];
         }
-     return ans;
+    return ans;
+    }
+
+//計算幾何模板
+typedef double D;
+//typedef __float128 D;
+//D abs(D a){return a<0?-a:a;}
+/*typedef long double D;
+#define atan2 atan2l
+#define sin sinl
+#define cos cosl
+#define acos acosl
+#define sqrt sqrtl*/
+const D pi=acos(-1);
+const D eps=1e-9;
+bool eql(D a,D b){return abs(a-b)<eps;}
+struct pnt;
+struct vec;
+struct rng;
+struct pnt{
+    D x,y;
+    vec operator-(pnt p);
+    pnt operator+(vec p);
+    pnt operator-(vec p);
+    };
+struct vec{
+    D x,y;
+    vec& operator+=(vec v){x+=v.x,y+=v.y;return *this;}
+    vec operator+(vec v){return vec{x+v.x,y+v.y};}
+    vec& operator-=(vec v){x-=v.x,y-=v.y;return *this;}
+    vec operator-(vec v){return vec{v.x-x,v.y+y};}
+    D dot(vec v){return x*v.x+y*v.y;}
+    D crs(vec v){return x*v.y-y*v.x;}
+    vec rot(D d){return vec{cos(d)*x-sin(d)*y,sin(d)*x+cos(d)*y};}
+    vec rot90(){return vec{-y,x};}
+    D ang(){D tmp=atan2(y,x);return tmp<0?tmp+pi*2:tmp;}
+    vec mir(D d){return vec{cos(2*d)*x+sin(2*d)*y,sin(2*d)*x-cos(2*d)*y};}
+    vec unit(){D r=sqrt(x*x+y*y);return vec{x/r,y/r};}
+    };
+struct rng{
+    D beg,len;
+    void init(D bg,D ed){
+        beg=bg;
+        len=(ed>=bg?ed-bg:ed-bg+pi*2);
+        }
+    D l(){return beg;}
+    D r(){return beg+len<pi*2?beg+len:beg+len-pi*2;}
+    rng its(rng g){
+        D tl=l(),tr=r(),gl=g.l(),gr=g.r();
+        D rtl,rtr;
+        if((beg<=gl&&gl<=beg+len)||(beg<=gl+pi*2&&gl+pi*2<=beg+len))
+            rtl=gl;
+        else if((g.beg<=tl&&tl<=g.beg+g.len)||(g.beg<=tl+pi*2&&tl+pi*2<=g.beg+g.len))
+            rtl=tl;
+        else
+            return rng{log(-1),log(-1)};
+        if((beg<=gr&&gr<=beg+len)||(beg<=gr+pi*2&&gr+pi*2<=beg+len))
+            rtr=gr;
+        else if((g.beg<=tr&&tr<=g.beg+g.len)||(g.beg<=tr+pi*2&&tr+pi*2<=g.beg+g.len))
+            rtr=tr;
+        else
+            return rng{log(-1),log(-1)};
+        if(abs(rtr-rtl)<eps)
+            return rng{log(-1),log(-1)};
+        rng ret;
+        ret.init(rtl,rtr);
+        return ret;
+        }
+    };
+vec pnt::operator-(pnt p){return vec{x-p.x,y-p.y};}
+pnt pnt::operator+(vec v){return pnt{x+v.x,y+v.y};}
+pnt pnt::operator-(vec v){return pnt{x-v.x,y-v.y};}
+pnt its(pnt p1,vec v1,pnt p2,vec v2){
+    D a=v1.y,b=-v1.x,e=a*p1.x+b*p1.y;
+    D c=v2.y,d=-v2.x,f=c*p2.x+d*p2.y;
+    if((a*d-b*c)==0)
+        return pnt{log(-1),log(-1)};
+    D x=(e*d-b*f)/(a*d-b*c),y=(a*f-e*c)/(a*d-b*c);
+    return pnt{x,y};
+    }
+D reang(D d){
+    if(d<0)d+=pi*2;
+    if(d>=pi*2)d-=pi*2;
+    return d;
     }
