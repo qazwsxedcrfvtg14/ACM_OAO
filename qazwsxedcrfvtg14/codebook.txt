@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 //bit binary indexed tree  //index 1~n
 void insert(int a,int val){
     while(a<=n){
@@ -4099,5 +4098,4 @@ struct palindromic_tree{
 	int size(){
 		return St.size()-2;
         }
->>>>>>> 6fe1ec3636bfc230dfd9666f0af57fb59ecfee01
     };
