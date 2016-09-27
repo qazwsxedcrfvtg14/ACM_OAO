@@ -1,4 +1,4 @@
-﻿//bit binary indexed tree  //index 1~n
+//bit binary indexed tree  //index 1~n
 void insert(int a,int val){
     while(a<=n){
         bit[a]+=val;
@@ -78,14 +78,26 @@ long long int inverse(long long int a, long long int m){
 
 //擴展歐基理德
 //ax+by==gcd(a,b)的解
-LL extGcd (LL a, LL b, LL &x, LL &y) {
-    LL ret = a;
-    if (b) {
-        ret = extGcd (b, a % b, y, x);
-        y -= (a / b) * x;
-    } else x = 1, y = 0;
+LL ext_gcd (LL a, LL b, LL &x, LL &y) {
+    LL ret=a;
+    if(b)ret=ext_gcd(b,a%b,y,x),y-=(a/b)*x;
+    else x=1,y=0;
     return ret;
-}
+    }
+//中國剩餘定理 slove X=r mod m;
+LL ex_crt(LL *m,LL *r,int n){
+    LL M=m[0],R=r[0],x,y,d;
+    for (int i=1;i<n;i++){
+        d=ex_gcd(M,m[i],x,y);
+        if((r[i]-R)%d)return -1;
+        x=(r[i]-R)/d*x%(m[i]/d);
+        R+=x*M;
+        M=M/d*m[i];
+        R%=M;
+        }
+    return R>0?R:R+M;
+    }
+
 
 //模逆元
 LL modInv (LL a, LL m) {
@@ -1996,3 +2008,181 @@ vector<pnt> convex(vector<pnt>og){
     }
 //遍歷子集
 for(int j=c;j;j=c&j-1);
+
+//zkw
+void build(){
+    for(M=1;M<=n+1;M<<=1);
+    for(int i=1;i<=n;i++)
+        zkw[id[i].f+M]=one<<col[i];
+    for(int i=M-1;i;i--)
+        zkw[i]=zkw[i<<1]^zkw[i<<1|1];
+    }
+void update(int x,__int128 val){
+    zkw[x+=M]^=val;
+    for(x>>=1;x>=1;x>>=1)
+        zkw[x]=zkw[x<<1]^zkw[x<<1|1];
+    }
+__int128 qry(int l,int r){
+    l=l+M-1,r=r+M+1;
+    __int128 ans=0;
+    for(;l^r^1;l>>=1,r>>=1){
+        if(~l&1)ans^=zkw[l^1];
+        if(r&1) ans^=zkw[r^1];
+        }
+    return ans;
+    }
+
+//KMP
+#define N 1000000 + 100
+char str[N];
+int next[N];
+void get_next(int m)
+{
+   int j ,k;
+   j = 0 ,k = -1;
+   next[0] = -1;
+   while(j < m)
+   {
+      if(k == -1 || str[j] == str[k])
+      next[++j] = ++k;
+      else
+      k = next[k];
+   }
+   return ;
+}
+
+//DominatorTree::build(int n,int s,vector<int> nod[],vector<int> rnod[],vector<int> result)
+const int N=200000+10;
+namespace DominatorTree{
+    int dfn[N],pre[N],pt[N],sz;
+    int semi[N],dsu[N],idom[N],best[N];
+    int get(int x) {
+        if (x == dsu[x]) return x;
+        int y = get(dsu[x]);
+        if (semi[best[x]] > semi[best[dsu[x]]]) best[x] = best[dsu[x]];
+        return dsu[x] = y;
+        }
+    void dfs(int u,const vector<int> succ[]) {
+        dfn[u] = sz;
+        pt[sz ++] = u;
+        for (auto &v: succ[u]) if (!~dfn[v]) {
+                dfs(v,succ);
+                pre[dfn[v]] = dfn[u];
+                }
+        }
+    void tarjan(const vector<int> pred[],vector<int> dom[]) {
+        for (int j = sz - 1,u; u = pt[j],j > 0; -- j) {
+            for (auto &tv: pred[u]) if (~dfn[tv]) {
+                    int v = dfn[tv];
+                    get(v);
+                    if (semi[best[v]] < semi[j]) semi[j] = semi[best[v]];
+                    }
+            dom[semi[j]].push_back(j);
+            int x = dsu[j] = pre[j];
+            for (auto &z: dom[x]) {
+                get(z);
+                if (semi[best[z]] < x) idom[z] = best[z];
+                else idom[z] = x;
+                }
+            dom[x].clear();
+            }
+        for (int i = 1; i < sz; ++ i) {
+            if (semi[i] != idom[i]) idom[i] = idom[idom[i]];
+            dom[idom[i]].push_back(i);
+            }
+        }
+    void build(int n,int s,const vector<int> succ[],const vector<int> pred[],vector<int> dom[]) {
+        for (int i = 0; i < n; ++ i) {
+            dfn[i] = -1;
+            dom[i].clear();
+            dsu[i] = best[i] = semi[i] = i;
+            }
+        sz = 0;
+        dfs(s,succ);
+        tarjan(pred,dom);
+        }
+    }
+
+//FFT&NNT
+template <typename T> int arrange(vector<T>& a){
+    int n=a.size();
+    for(int i=1,x=0,y=0;i<=n;i++){
+        if(x>y) swap(a[x],a[y]);
+        x^=i&-i;
+        y^=n/(i&-i)>>1;
+        }
+    return n;
+    }
+class FFT { // 快速傅里叶变换
+public:
+    typedef complex<double> complex_num;
+    void fourier(vector<complex_num>& a, int o){//length of array must be 2^k
+        int n=arrange(a);
+        const double PI=acos(-1);
+        for(int m=1;m<n;m+=m){
+            complex_num w=1,e(cos(PI/m),sin(PI/m)*o);
+            for(int x=0;x<n;w=1,x+=m+m)
+            for(int y=0;y<m;y++,w*=e){
+                complex_num t=w*a[x+y+m];
+                a[x+y+m]=a[x+y]-t;
+                a[x+y]+=t;
+                }
+            }
+        if(o<0) for(int i=0;i<n;i++) a[i]/=n;
+        }
+    vector<int> convolution(const vector<int>& a, const vector<int>& b){
+        int n=a.size(),m=b.size();
+        int s=1<<(32-__builtin_clz(n+m-2)); // n+m must >=2
+        vector<complex_num> u(s),v(s);
+        for(int i=0;i<n;i++) u[i]=a[i];
+        for(int i=0;i<m;i++) v[i]=b[i];
+        fourier(u,+1);
+        fourier(v,+1);
+        for(int i=0;i<s;i++) u[i]*=v[i];
+        fourier(u,-1);
+        vector<int> w(n+m-1);
+        for(int i=0;i<n+m-1;i++) w[i]=int(u[i].real()+0.5);
+        return w;
+        }
+    };
+class NTT { // 数论变换，能求模P下的精确卷积
+public:     // P must be prime, and exist k,q that P=q*2^k+1
+    static const int P = 786433, G = 10; // G^(P-1)=1 mod P
+    int add(int x, int y){
+        return x+y<P?x+y:x+y-P;
+        }
+    int pow(long long a, int e){
+        int s=1%P;
+        for(a=a%P;e;a=a*a%P,e>>=1)
+            if(e&1) s=s*a%P;
+        return s;
+        }
+    void fourier(vector<int>& a){ //length of array must be 2^k
+        int n=arrange(a);
+        for(int m=1;m<n;m+=m){
+            int e=pow(G,(P-1)/m>>1);
+            long long w=1;
+            for(int x=0;x<n;w=1,x+=m+m)
+            for(int y=0;y<m;y++,w=w*e%P){
+                int t=w*a[x+y+m]%P;
+                a[x+y+m]=add(a[x+y],P-t);
+                a[x+y]=add(t,a[x+y]);
+                }
+            }
+        }
+    vector<int> convolution(const vector<int>& a, const vector<int>& b){
+        int n=a.size(),m=b.size();
+        int s=1<<(32-__builtin_clz(n+m-2)); // n+m must >=2
+        vector<int> u(s),v(s);
+        for(int i=0;i<n;i++) u[i]=a[i];
+        for(int i=0;i<m;i++) v[i]=b[i];
+        fourier(u);
+        fourier(v);
+        long long inv=pow(s,P-2);
+        for(int i=0;i<s;i++) u[i]=u[i]*inv%P*v[i]%P;
+        reverse(u.begin()+1,u.end());
+        fourier(u);
+        u.erase(u.begin()+n+m-1,u.end());
+        return u;
+        }
+    };
