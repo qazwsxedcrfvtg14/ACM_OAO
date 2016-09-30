@@ -1372,36 +1372,39 @@ void join(ptr now,ptr to){
     now->sl=to;
     }	
 
-//tarjan 點雙連通
-vector<int> nod[100005];
-int id[100005],nid;
-int dfn[100005],low[100005],cnt;
-stack<par>st;
-void F(int now,int f){
-    dfn[now]=low[now]=++cnt;
-    for(int x:nod[now]){
-        if(x==f)continue;
-        if(!dfn[x]){
-            st.push(par(now,x));
-            F(x,now);
-            low[now]=min(low[now],low[x]);
-            par tmp;
-            if(dfn[now]<=low[x]){
-                do{
-                    tmp=st.top();
-                    st.pop();
-                    id[tmp.f]=id[tmp.s]=nid;
-                    }while(tmp!=par(now,x));
-                nid++;
-                }
-            }
-        else{
-            low[now]=min(low[now],dfn[x]);
-            if(dfn[now]>dfn[x])
-                st.push(par(now,x));
-            }
+//tarjan
+#define N 100005
+int mod = 1000000007 ;
+vector<int> s[N],scc[N],g[N];
+stack<int> sta;
+int dfs_cnt=0,pre[N]={0},sccno[N]={0},scc_cnt=0;
+int dfs(int u,int fa){
+    int lowu,lowv,i;
+    lowu=pre[u]=++dfs_cnt;
+    sta.push(u);
+    for(i=0;i<s[u].size();i++){
+        int v=s[u][i];
+        if(v==fa) continue;
+        if(pre[v]==0){
+            lowv=dfs(v,u);
+            lowu=min(lowu,lowv);
+        }
+        else if(pre[v]<pre[u] && sccno[v]==0){
+            lowu=min(lowu,pre[v]);
         }
     }
+    if(lowu==pre[u]){
+        ++scc_cnt;
+        while(sta.size()){
+            int x=sta.top();
+            sta.pop();
+            sccno[x]=scc_cnt;
+            scc[scc_cnt].push_back(x);
+            if(x==u) break;
+        }
+    }
+    return lowu;
+}
 
 //重心剖分
 vector<par>nod[100005];
@@ -2178,13 +2181,15 @@ public:
         for(int m=1;m<n;m+=m){
             complex_num w=1,e(cos(PI/m),sin(PI/m)*o);
             for(int x=0;x<n;w=1,x+=m+m)
-            for(int y=0;y<m;y++,w*=e){
-                complex_num t=w*a[x+y+m];
-                a[x+y+m]=a[x+y]-t;
-                a[x+y]+=t;
-                }
+                for(int y=0;y<m;y++,w*=e){
+                    complex_num t=w*a[x+y+m];
+                    a[x+y+m]=a[x+y]-t;
+                    a[x+y]+=t;
+                    }
             }
-        if(o<0) for(int i=0;i<n;i++) a[i]/=n;
+        if(o<0)
+            for(int i=0;i<n;i++)
+                a[i]/=n;
         }
     vector<int> convolution(const vector<int>& a, const vector<int>& b){
         int n=a.size(),m=b.size();
