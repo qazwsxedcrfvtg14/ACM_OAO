@@ -1110,64 +1110,6 @@ void discharge(int i,int s,int t){
         relabel(i);
         }
     }
-int max_flow(int s, int t){
-    for(int i=0;i<n;i++)
-        for(int j=0;j<n;j++)
-            fl[i][j]=0;
-    for(int i=0;i<n;i++)
-        e[i]=d[i]=iq[i]=0;
-    while(!q.empty())q.pop();
-    d[s]=n-1;
-    preflow(s,t);
-    while(!q.empty()){
-        int i=q.front();
-        q.pop();
-        iq[i]=false;
-        if(e[i]&&i!=s&&i!=t)
-            discharge(i,s,t);
-        }
-    return e[t];
-    }int mp[N][N]; //this is input
-int fl[N][N];
-int d[N],e[N];
-queue<int>q;
-bool iq[N];
-int n; //this is input
-void preflow(int s,int t){
-    for(int j=0;j<n;j++)
-        if(mp[s][j]-fl[s][j]&&j!=s){
-            int f=mp[s][j]-fl[s][j];
-            e[j]+=f;
-            fl[s][j]+=f;
-            fl[j][s]-=f;
-            if(j!=s&&j!=t&&!iq[j])q.push(j),iq[j]=true;
-            }
-    }
-void push(int i, int j){
-    int f=min(e[i],mp[i][j]-fl[i][j]);
-    e[i]-=f;
-    e[j]+=f;
-    fl[i][j]+=f;
-    fl[j][i]-=f;
-    }
-void relabel(int i){
-    d[i]=n*2;
-    for(int j=0;j<n;j++)
-        if(mp[i][j]-fl[i][j])
-            d[i]=min(d[i],d[j]);
-    d[i]++;
-    }
-void discharge(int i,int s,int t){
-    while(e[i]){
-        for(int j=0;j<n;j++)
-            if(d[i]==d[j]+1&&mp[i][j]-fl[i][j]){
-                push(i,j);
-                if(j!=s&&j!=t&&!iq[j])q.push(j),iq[j]=true;
-                if(!e[i])return;
-                }
-        relabel(i);
-        }
-    }
 int max_flow(int s, int t,bool clean=true){
     if(clean)
         for(int i=0;i<n;i++)
