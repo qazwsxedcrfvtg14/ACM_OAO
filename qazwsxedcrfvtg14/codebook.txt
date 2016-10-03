@@ -2290,3 +2290,4 @@ void increase_stack_size(){
 //KD tree
 //fix NTT
 //.vimrc
+//莫隊算法
