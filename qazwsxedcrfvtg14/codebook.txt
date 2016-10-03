@@ -2189,3 +2189,25 @@ public:     // P must be prime, and exist k,q that P=q*2^k+1
         return u;
         }
     };
+
+//Increase Stack size
+//stack resize
+asm("mov %0,%%exp\n"::"g"(mem+10000000));
+//stack resize(linux)
+#include <sys/resource.h>
+void increase_stack_size(){
+    const rlim_t ks=64*104*1024;
+    struct rlimt rl;
+    int res=getlimit(RLINIT_STACK,&rl);
+    if(res==0&&rl.rlim_cur<ks)
+        rl.rlim_cur=ks,res=setrlimit(RLIMIT_STACK,&rl);
+}
+
+//TODO
+//SAIS //Suffix array
+//AC machine
+//Link cut tree
+//質數 米勒羅冰
+//KD tree
+//fix NTT
+//.vimrc
