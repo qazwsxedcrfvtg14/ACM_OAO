@@ -37,6 +37,8 @@ while(m--){
     if(i>j){int l=i;i=j;j=l;}
     printf("%d\n",qry(0,0,n-1,i-1,j-1));
     }
+
+//Static RMQ 
 void make(int n){            //區間最大最小值
     for(int i=0; i<n;i++)
         v1[0][i]=ar[i],v2[0][i]=ar[i];
@@ -365,10 +367,10 @@ int query(int a, int b){
 
 //SA+H
 const int N=100005;
-int n,SA[N],rk[2][N];
 char s[N];
+int n,SA[N],rk[2][N];
 void mak_SA(){
-    n=strlen(s);n++;
+    int n=strlen(s)+1;
     for(int i=0;i<n;i++)
         rk[0][i]=s[i],SA[i]=i;
     for(int k=0;(1<<k)<n;k++){
@@ -386,8 +388,9 @@ void mak_SA(){
         if(cnt==n)return;
         }
     }
+int SA[N],buk[N],rk1[N],rk2[N]; 
 void mak_SA2(){//buggy
-    n=strlen(s);
+    int n=strlen(s)+1;
     int *rnk=rk1,*rp=rk2;
     for(int i=0;i<n;i++)
         rp[i]=s[i];
@@ -412,10 +415,13 @@ void mak_SA2(){//buggy
         for(int i=1;i<n;i++)
             rnk[SA[i]]=(rp[SA[i]]==rp[SA[i-1]]&&rp[SA[i]+j]==rp[SA[i-1]+j])?p-1:p++;
         }
+    n--; 
+    for(int i=0;i<n;i++)
+        SA[i]=SA[i+1]; 
     }
 int rnk[N];   // 各個後綴對應的名次
 int H[N];   // longest common prefix array
-void mak_h(){
+void mak_H(){
     // 也就是各個後綴在sa當中的索引值
     // 也就是sa的反函數
     for(int i=0;i<n;i++)
@@ -2187,6 +2193,79 @@ public:     // P must be prime, and exist k,q that P=q*2^k+1
         fourier(u);
         u.erase(u.begin()+n+m-1,u.end());
         return u;
+        }
+    };
+
+//rk-hash
+const int N=100005;
+char s[N];
+const int MOD=1000000007;
+const int A=100001;
+int HS[N],P[N];
+void mak_HS(int n){
+    HS[0]=0;
+    P[0]=1;
+    for(int i=1;i<=n;i++)
+        HS[i]=((1ll*HS[i-1]*A)%MOD+s[i-1])%MOD,
+        P[i]=(1ll*P[i-1]*A)%MOD;
+    }
+int hsh(int l,int r){
+    return (0LL+HS[r+1]-(1ll*HS[l]*P[r-l+1])%MOD+MOD)%MOD;
+    }
+
+//回文樹
+struct palindromic_tree{
+	struct node{
+		int next[26],suf,len;
+		int cnt,pos;
+		node(int l=0):suf(0),len(l),cnt(0),pos(-1){
+			for(int i=0;i<26;++i)next[i]=0;
+            }
+        };
+	std::vector<node>St;
+	std::vector<char>s;
+	int last,n;
+	palindromic_tree():St(2),last(1),n(0){
+		St[0].suf=1;
+		St[1].len=-1;
+		s.push_back(-1);
+        }
+	void clear(){
+		St.clear();
+		s.clear();
+		last=1;
+		n=0;
+		St.push_back(0);
+		St.push_back(-1);
+		St[0].suf=1;
+		s.push_back(-1);
+        }
+	int get_suf(int x){
+		while(s[n-St[x].len-1]!=s[n])x=St[x].suf;
+		return x;
+        }
+	void add(int c){
+		s.push_back(c-='a');
+		++n;
+		int cur=get_suf(last);
+		if(!St[cur].next[c]){
+			int now=St.size();
+			St.push_back(St[cur].len+2);
+			St[now].suf=St[get_suf(St[cur].suf)].next[c];
+			St[cur].next[c]=now;
+			St[now].pos=n-St[now].len;
+            }
+		last=St[cur].next[c];
+		++St[last].cnt;
+        }
+	void count(){
+		std::vector<node>::reverse_iterator i=St.rbegin();
+		for(;i!=St.rend();++i){
+			St[i->suf].cnt+=i->cnt;
+            }
+        }
+	int size(){
+		return St.size()-2;
         }
     };
 
