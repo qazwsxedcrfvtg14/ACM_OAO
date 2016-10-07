@@ -437,6 +437,69 @@ void mak_H(){
             }
     }
 
+//Suﬃx Array (SAIS TWT514)
+struct SA{ 
+    #define REP(i,n) for ( int i=0; i<int(n); i++ ) 
+    #define REP1(i,a,b) for ( int i=(a); i<=int(b); i++ ) 
+    static const int MXN = 300010; 
+    bool _t[MXN*2]; 
+    int _s[MXN*2], _sa[MXN*2], _c[MXN*2], x[MXN], _p[ MXN], _q[MXN*2], hei[MXN], r[MXN]; 
+    int operator [] (int i){ return _sa[i]; } 
+    void build(int *s, int n, int m){ 
+        memcpy(_s, s, sizeof(int) * n); 
+        sais(_s, _sa, _p, _q, _t, _c, n, m); 
+        mkhei(n); 
+        } 
+    void mkhei(int n){ 
+        REP(i,n) r[_sa[i]] = i; 
+        hei[0] = 0; 
+        REP(i,n) if(r[i]) { 
+            int ans = i>0 ? max(hei[r[i-1]] - 1, 0) : 0;
+            while(_s[i+ans] == _s[_sa[r[i]-1]+ans]) ans++; 
+            hei[r[i]] = ans;
+            }
+        } 
+    void sais(int *s, int *sa, int *p, int *q, bool *t, int *c, int n, int z){ 
+        bool uniq = t[n-1] = true, neq; 
+        int nn = 0, nmxz = -1, *nsa = sa + n, *ns = s + n, lst = -1; 
+#define MS0(x,n) memset((x),0,n*sizeof(*(x))) 
+#define MAGIC(XD) MS0(sa, n); \ 
+        memcpy(x, c, sizeof(int) * z); \ 
+        XD; \ 
+        memcpy(x + 1, c, sizeof(int) * (z - 1)); \
+        REP(i,n) if(sa[i] && !t[sa[i]-1]) sa[x[s[sa[i ]-1]]++] = sa[i]-1; \
+        memcpy(x, c, sizeof(int) * z); \ 
+        for(int i = n - 1; i >= 0; i--) if(sa[i] && t[ sa[i]-1]) sa[--x[s[sa[i]-1]]] = sa[i]-1; 
+        MS0(c, z); 
+        REP(i,n) uniq &= ++c[s[i]] < 2; 
+        REP(i,z-1) c[i+1] += c[i]; 
+        if (uniq) { REP(i,n) sa[--c[s[i]]] = i; return; } 
+        for(int i = n - 2; i >= 0; i--) 
+            t[i] = (s[i]==s [i+1] ? t[i+1] : s[i]<s[i+1]); 
+        MAGIC(REP1(i,1,n-1) 
+        if(t[i] && !t[i-1]) 
+            sa[--x[ s[i]]]=p[q[i]=nn++]=i); 
+        REP(i, n) if (sa[i] && t[sa[i]] && !t[sa[i]-1]) { 
+            neq=lst<0||memcmp(s+sa[i],s+lst,(p[q[sa[i ]]+1]-sa[i])*sizeof(int)); 
+            ns[q[lst=sa[i]]]=nmxz+=neq; 
+            } 
+        sais(ns, nsa, p + nn, q + n, t + n, c + z, nn, nmxz + 1); 
+        MAGIC(for(int i = nn - 1; i >= 0; i--) sa[--x[s [p[nsa[i]]]]] = p[nsa[i]]);
+        } 
+    }sa; 
+void suffix_array(int* ip, int len) { 
+    // should padding a zero in the back 
+    // s is int array, n is array length 
+    // s[0..n-1] != 0, and s[n] = 0 
+    // resulting SA will be length n+1 
+    ip[len++] = 0; sa.build(ip, len, 128); 
+    // original 1-base 
+    for (int i=0; i<l; i++) { 
+        hei[i] = sa.hei[i + 1]; 
+        sa[i] = sa._sa[i + 1]; 
+        }
+    }
+
 //Treap
 typedef struct node* ptr;
 ptr nil=NULL;
@@ -660,7 +723,7 @@ struct cub{
         return c;
         }
     cub del(int x,int y){
-        if(x>=n||y>=m)throw("del error");
+        if(x<0||y<0||x>=n||y>=m)throw("del error");
         cub c(n-1,m-1);
         for(int i=0,ci=0;i<n;i++,ci++){
             if(i==x){ci--;continue;}
@@ -2013,6 +2076,85 @@ vector<pnt> convex(vector<pnt>og){
     cv.resize(q);
     return cv;
     }
+//Intersection of two circle
+using ld = double; 
+vector<pdd> interCircle(pdd o1, double r1, pdd o2, double r2) { 
+    ld d2 = (o1 - o2) * (o1 - o2); 
+    ld d = sqrt(d2); 
+    if (d > r1+r2) return {}; 
+    pdd u = 0.5*(o1+o2) + ((r2*r2-r1*r1)/(2*d2))*(o1-o2); 
+    double A = sqrt((r1+r2+d) * (r1-r2+d) * (r1+r2-d) * (-r1+r2+d)); 
+    pdd v = A / (2*d2) * pdd(o1.S-o2.S, -o1.F+o2.F); 
+    return {u+v, u-v}; 
+    }
+//Intersection of two lines
+const double EPS = 1e-9; 
+pdd interPnt(pdd p1, pdd p2, pdd q1, pdd q2, bool &res) { 
+    double f1 = cross(p2, q1, p1); 
+    double f2 = -cross(p2, q2, p1); 
+    double f = (f1 + f2); 
+    if(fabs(f) < EPS) { 
+        res = false; return {}; 
+        } 
+    res = true; 
+    return (f2 / f) * q1 + (f1 / f) * q2; 
+    }
+//Half Plane Intersection
+const double EPS = 1e-9; 
+pdd interPnt(Line l1, Line l2, bool &res){ 
+    pdd p1, p2, q1, q2; 
+    tie(p1, p2) = l1; 
+    tie(q1, q2) = l2; 
+    double f1 = cross(p2, q1, p1); 
+    double f2 = -cross(p2, q2, p1); 
+    double f = (f1 + f2); 
+    if(fabs(f) < EPS) { 
+        res = false; 
+        return {0, 0}; 
+        } 
+    res = true; 
+    return (f2 / f) * q1 + (f1 / f) * q2; 
+    } 
+bool isin(Line l0, Line l1, Line l2) { 
+    // Check inter(l1, l2) in l0 
+    bool res; pdd p = interPnt(l1, l2, res); 
+    return cross(l0.S, p, l0.F) > EPS; 
+    } 
+/* If no solution, check: 1. ret.size() < 3 
+ * Or more precisely, 2. interPnt(ret[0], ret[1])
+ * in all the lines. (use (l.S - l.F).cross(p - l.F) > 0 */ 
+ vector<Line> halfPlaneInter(vector<Line> lines) { 
+     int sz = lines.size(); 
+     vector<double> ata(sz), ord(sz); 
+     for (int i=0; i<sz; i++) { 
+        ord[i] = i;
+        pdd d = lines[i].S - lines[i].F; 
+        ata[i] = atan2(d.y, d.x);
+        } 
+    sort(ALL(ord), [&](int i, int j) { 
+        if (abs(ata[i] - ata[j]) < EPS) { 
+            return cross(lines[i].S, lines[j].S, lines[ i].F) < 0; 
+            } 
+        return ata[i] < ata[j]; 
+        }); 
+    vector<Line> fin; 
+    for (int i=0; i<sz; i++) { 
+        if (!i or fabs(ata[ord[i]] - ata[ord[i-1]]) > EPS) { 
+            fin.PB(lines[ord[i]]); 
+            } 
+        } 
+    deque<Line> dq; 
+    for (int i=0; i<SZ(fin); i++) { 
+        while(SZ(dq) >= 2 and not isin(fin[i], dq[SZ(dq)-2], dq[SZ(dq) -1])) dq.pop_back(); 
+        while(SZ(dq) >= 2 and not isin(fin[i], dq[0], dq[1])) dq.pop_front(); 
+        dq.push_back(fin[i]); 
+        } 
+    while (SZ(dq) >= 3 and not isin(dq[0], dq[SZ(dq)-2], dq[SZ(dq)-1])) dq.pop_back(); 
+    while (SZ(dq) >= 3 and not isin(dq[SZ(dq)-1], dq[0], dq[1])) dq.pop_front(); 
+    vector<Line> res(ALL(dq)); 
+    return res;
+    }
+
 //遍歷子集
 for(int j=c;j;j=c&j-1);
 
@@ -2155,6 +2297,35 @@ public:
         }
     };
 class NTT { // 数论变换，能求模P下的精确卷积
+//int P=605028353,root=3,MAXNUM=262144; 
+// Remember coefficient are mod P 
+/* 
+p=a*2^n+1 
+n 2^n p a root 
+5 32 97 3 5 
+6 64 193 3 5 
+7 128 257 2 3 
+8 256 257 1 3 
+9 512 7681 15 17 
+10 1024 12289 12 11 
+11 2048 12289 6 11 
+12 4096 12289 3 11 
+13 8192 40961 5 3 
+14 16384 65537 4 3 
+15 32768 65537 2 3 
+16 65536 65537 1 3 
+17 131072 786433 6 10 
+18 262144 786433 3 10 (605028353, 2308, 3) 
+19 524288 5767169 11 3 
+20 1048576 7340033 7 3 
+21 2097152 23068673 11 3 
+22 4194304 104857601 25 3 
+23 8388608 167772161 20 3 
+24 16777216 167772161 10 3 
+25 33554432 167772161 5 3 (1107296257, 33, 10) 
+26 67108864 469762049 7 3 
+27 134217728 2013265921 15 31 
+*/ 
 public:     // P must be prime, and exist k,q that P=q*2^k+1
     static const int P = 786433, G = 10; // G^(P-1)=1 mod P
     int add(int x, int y){
@@ -2282,12 +2453,677 @@ void increase_stack_size(){
         rl.rlim_cur=ks,res=setrlimit(RLIMIT_STACK,&rl);
 }
 
-//TODO
-//SAIS //Suffix array
-//AC machine
-//Link cut tree
-//質數 米勒羅冰
-//KD tree
-//fix NTT
-//.vimrc
+//unordered_map
+struct Key { 
+    int first,second; 
+    Key () {} 
+    Key (int _x, int _y) : first(_x), second(_y) {} 
+    bool operator == (const Key &b) const { 
+        return tie(F,S) == tie(b.F,b.S); 
+        } 
+    }; 
+struct KeyHasher { 
+    size_t operator()(const Key& k) const { 
+        return k.first + k.second*100000; 
+        } 
+    }; 
+typedef unordered_map<Key,int,KeyHasher> map_t; 
+int main(int argc, char** argv){ 
+    map_t mp; 
+    for (int i=0; i<10; i++) 
+        mp[Key(i,0)] = i+1; 
+        for (int i=0; i<10; i++) 
+        printf("%d\n", mp[Key(i,0)]); 
+        return 0; 
+    }
+
+//DisjointSet
+struct DisjointSet { 
+    // save() is like recursive 
+    // undo() is like return 
+    int n, fa[MXN], sz[MXN]; 
+    vector<pair<int*,int>> h; 
+    vector<int> sp; 
+    void init(int tn) { 
+        n=tn; 
+        for (int i=0; i<n; i++) { 
+            fa[i]=i; sz[i]=1; 
+            } 
+        sp.clear(); 
+        h.clear(); 
+        } 
+    void assign(int *k, int v) {
+         h.PB({k, *k}); *k=v; 
+         }
+    void save() { 
+        sp.PB(SZ(h)); 
+        } 
+    void undo() { 
+        assert(!sp.empty()); 
+        int last=sp.back(); 
+        sp.pop_back(); 
+        while (SZ(h)!=last) { 
+            auto x=h.back(); h.pop_back(); *x.F=x.S; 
+            } 
+        } 
+    int f(int x) { 
+        while (fa[x]!=x) x=fa[x]; 
+        return x; 
+        } 
+    void uni(int x, int y) { 
+        x=f(x); y=f(y); 
+        if (x==y) return ; 
+        if (sz[x]<sz[y]) swap(x, y); 
+        assign(&sz[x], sz[x]+sz[y]); 
+        assign(&fa[y], x); 
+        } 
+    }djs;
+
+const int MXN = 100005; 
+const int MEM = 100005; 
+struct Splay { 
+    static Splay nil, mem[MEM], *pmem; Splay *ch[2], *f; 
+    int val, rev, size; 
+    Splay () : val(-1), rev(0), size(0){ 
+        f = ch[0] = ch[1] = &nil; 
+        } 
+    Splay (int _val) : val(_val), rev(0), size(1){ 
+        f = ch[0] = ch[1] = &nil; 
+        } 
+    bool isr(){ 
+        return f->ch[0] != this && f->ch[1] != this; 
+        } 
+    int dir(){ 
+        return f->ch[0] == this ? 0 : 1; 
+        } 
+    void setCh(Splay *c, int d){ 
+        ch[d] = c; 
+        if (c != &nil) c->f = this; 
+        pull(); 
+        } 
+    void push(){ 
+        if (rev){ 
+            swap(ch[0], ch[1]); 
+            if (ch[0] != &nil) ch[0]->rev ^= 1; 
+            if (ch[1] != &nil) ch[1]->rev ^= 1; 
+            rev=0; 
+            } 
+        } 
+    void pull(){ 
+        size = ch[0]->size + ch[1]->size + 1; 
+        if (ch[0] != &nil) ch[0]->f = this; 
+        if (ch[1] != &nil) ch[1]->f = this; 
+        } 
+    } Splay::nil, Splay::mem[MEM], *Splay::pmem = Splay:: mem; 
+Splay *nil = &Splay::nil; 
+void rotate(Splay *x){ 
+    Splay *p = x->f; 
+    int d = x->dir(); 
+    if (!p->isr()) p->f->setCh(x, p->dir()); 
+    else x->f = p->f; 
+    p->setCh(x->ch[!d], d); 
+    x->setCh(p, !d); 
+    p->pull(); x->pull();
+    } 
+vector<Splay*> splayVec; 
+void splay(Splay *x){
+    splayVec.clear(); 
+    for (Splay *q=x;; q=q->f){ 
+        splayVec.push_back(q); 
+        if (q->isr()) break; 
+        } 
+    reverse(begin(splayVec), end(splayVec)); 
+    for (auto it : splayVec) it->push(); 
+    while (!x->isr()) { 
+        if (x->f->isr()) rotate(x); 
+        else if (x->dir()==x->f->dir()) rotate(x->f),rotate(x); 
+        else rotate(x),rotate(x); 
+        }
+    } 
+Splay* access(Splay *x){ 
+    Splay *q = nil; 
+    for (;x!=nil;x=x->f){ 
+        splay(x); 
+        x->setCh(q, 1); 
+        q = x; 
+        } 
+    return q; 
+    } 
+void evert(Splay *x){ 
+    access(x); 
+    splay(x); 
+    x->rev ^= 1; 
+    x->push(); 
+    x->pull(); 
+    } 
+void link(Splay *x, Splay *y){ 
+    // evert(x); 
+    access(x); 
+    splay(x); 
+    evert(y); 
+    x->setCh(y, 1); 
+    } 
+void cut(Splay *x, Splay *y){ 
+    // evert(x); 
+    access(y); 
+    splay(y); 
+    y->push(); 
+    y->ch[0] = y->ch[0]->f = nil; 
+    } 
+int N, Q; Splay *vt[MXN]; 
+int ask(Splay *x, Splay *y){ 
+    access(x); 
+    access(y); 
+    splay(x); 
+    int res = x->f->val; 
+    if (res == -1) res=x->val; 
+    return res; 
+    } 
+int main(int argc, char** argv){ 
+    scanf("%d%d", &N, &Q); 
+    for (int i=1; i<=N; i++) 
+        vt[i] = new (Splay::pmem++) Splay(i); 
+    while (Q--) { 
+        char cmd[105]; 
+        int u, v; 
+        scanf("%s", cmd); 
+        if (cmd[1] == 'i') { 
+            scanf("%d%d", &u, &v); 
+            link(vt[v], vt[u]); 
+            } 
+        else if (cmd[0] == 'c') { 
+            scanf("%d", &v); 
+            cut(vt[1], vt[v]); 
+            } 
+        else { 
+            scanf("%d%d", &u, &v); 
+            int res=ask(vt[u], vt[v]); 
+            printf("%d\n", res); 
+            } 
+        } 
+    }
+
+//SPFA 負環
+bool loop(double k,int n){
+    static int us[705];
+    static double val[705];
+    static bool iq[705];
+    for(int i=0;i<=n;i++)
+        us[i]=0,val[i]=INFINITY,iq[i]=false;
+    queue<int>qu;
+    qu.push(0);
+    val[0]=0;
+    iq[0]=true;
+    while(!qu.empty()){
+        int now=qu.front();
+        qu.pop();
+        iq[now]=false;
+        for(par x:nod[now]){
+            if(val[x.f]>val[now]+x.s+k){
+                val[x.f]=val[now]+x.s+k;
+                if(!iq[x.f]){
+                    if(++us[x.f]>=n)return true;
+                    iq[x.f]=true;
+                    qu.push(x.f);
+                    }
+                }
+            }
+        }
+    return false;
+    }
+
+//Fast Linear Recurrence
+ll n,m,dp[N+N]; 
+void pre_dp(){ 
+    dp[0]= 1; 
+    ll bdr = min(m+m,n); 
+    for(ll i=1; i<=bdr; i++) 
+        for(ll j=i-1; j>=max(0ll,i-m); j--) 
+        dp[i]= add(dp[i],dp[j]); 
+    } 
+vector<ll> Mul(const vector<ll>& v1,const vector<ll>& v2){ 
+    int sz1 = (int)v1.size(); 
+    int sz2 = (int)v2.size(); 
+    assert(sz1 == m and sz2 == m); 
+    vector<ll> _v(m+m); 
+    for(int i=0; i<m+m; i++) _v[i]= 0;
+    // expand 
+    for(int i=0; i<sz1; i++) 
+        for(int j=0; j<sz2; j++) 
+            _v[i+j+1]= add(_v[i+j+1],mul(v1[i],v2[j])); 
+    // shrink 
+    for(int i=0; i<m; i++) 
+        for(int j=1; j<=m; j++) 
+            _v[i + j]= add(_v[i + j],_v[i]); 
+    for(int i=0; i<m; i++) 
+        _v[i]= _v[i + m]; 
+        _v.resize(m); 
+        return _v;
+    } 
+vector<ll> I,A; 
+ll solve(){ 
+    pre_dp(); 
+    if(n <= m+m)return dp[n]; 
+    I.resize(m); 
+    A.resize(m); 
+    for(int i=0; i<m; i++) 
+        I[i]=A[i]=1; 
+    // dp[n]= /Sum_{i=0}^{m-1} A_i * dp[n - i - 1] 
+    ll dlt = (n - m) / m; 
+    ll rdlt = dlt * m; 
+    while(dlt){ 
+        if(dlt & 1ll) 
+            I = Mul(I,A); 
+        A = Mul(A,A); 
+        dlt >>= 1; 
+        } 
+    ll ans = 0; 
+    for(int i=0; i<m; i++) 
+        ans = add(ans,mul(I[i],dp[n-i-1-rdlt])); 
+    return ans; 
+    }
+
+//Miller Rabin
+// n < 4,759,123,141 3 : 2, 7, 61 
+// n < 1,122,004,669,633 4 : 2, 13, 23, 1662803 
+// n < 3,474,749,660,383 6 : pirmes <= 13 
+// n < 2^64 7 : 2, 325, 9375, 28178, 450775, 9780504, 1795265022 
+// Make sure testing integer is in range [2, n−2] if you want to use magic. 
+long long power(long long x,long long p,long long mod){ 
+    long long s=1,m=x; while(p) { 
+        if(p&1) s=mult(s,m,mod); 
+        p>>=1; m=mult(m,m,mod); 
+        } 
+    return s; 
+    } 
+bool witness(long long a,long long n,long long u,int t) { 
+    long long x=power(a,u,n); 
+    for(int i=0;i<t;i++) { 
+        long long nx=mult(x,x,n); 
+        if(nx==1&&x!=1&&x!=n-1) 
+            return 1; 
+        x=nx; 
+        } 
+    return x!=1; 
+    } 
+bool miller_rabin(long long n,int s=100) { 
+    // iterate s times of witness on n 
+    // return 1 if prime, 0 otherwise 
+    if(n<2) return 0; 
+    if(!(n&1)) return n==2; 
+    long long u=n-1; 
+    int t=0; 
+    // n-1 = u*2^t 
+    while(!(u&1)) { 
+        u>>=1; 
+        t++; 
+        } 
+    while(s--) { 
+        long long a=randll()%(n-1)+1; 
+        if(witness(a,n,u,t)) 
+            return 0; 
+        } 
+    return 1; 
+    }
+//Pollard Rho
+// does not work when n is prime 
+long long modit(long long x,long long mod) { 
+    if(x>=mod) x-=mod; 
+    //if(x<0) x+=mod; 
+    return x; 
+    } 
+long long mult(long long x,long long y,long long mod) { 
+    long long s=0,m=x%mod; 
+    while(y) { 
+        if(y&1) s=modit(s+m,mod); 
+        y>>=1; 
+        m=modit(m+m,mod); 
+        } 
+    return s; 
+    } 
+long long f(long long x,long long mod) { 
+    return modit(mult(x,x,mod)+1,mod); 
+    } 
+long long pollard_rho(long long n) { 
+    if(!(n&1)) return 2; 
+    while (true) { 
+        long long y=2, x=rand()%(n-1)+1, res=1; 
+        for (int sz=2; res==1; sz*=2) { 
+            for (int i=0; i<sz && res<=1; i++) { 
+                x = f(x, n); 
+                res = __gcd(abs(x-y), n); 
+                } 
+            y = x; 
+            } 
+        if (res!=0 && res!=n) return res;
+        }
+    }
+
+//Pseudoinverse of Square matrix
+Mat pinv(Mat m) { 
+    Mat res = I; FZ(used); 
+    for(int i=0; i<W; i++) { 
+        int piv = -1; 
+        for(int j=0; j<W; j++) { 
+            if(used[j]) continue; 
+            if(abs(m.v[j][i]) > EPS) { 
+                piv = j; break; 
+                } 
+            } 
+        if(piv == -1) continue; 
+        used[i] = true; 
+        swap(m.v[piv], m.v[i]); 
+        swap(res.v[piv], res.v[i]); 
+        ld rat = m.v[i][i]; 
+        for(int j=0; j<W; j++) { 
+            m.v[i][j] /= rat; res.v[i][j] /= rat; 
+            } 
+        for(int j=0; j<W; j++) { 
+            if(j == i) continue; 
+            rat = m.v[j][i]; 
+            for(int k=0; k<W; k++) { 
+                m.v[j][k] -= rat * m.v[i][k]; 
+                res.v[j][k] -= rat * res.v[i][k]; 
+                } 
+            } 
+        } 
+    for(int i=0; i<W; i++) { 
+        if(used[i]) continue; 
+        for(int j=0; j<W; j++) 
+        res.v[i][j] = 0; 
+        } 
+    return res; 
+    }
+
+//kd-tree
+#ifndef SUNMOON_DYNEMIC_KD_TREE
+#define SUNMOON_DYNEMIC_KD_TREE
+template<typename T,size_t kd>//kd表示有幾個維度 
+class kd_tree{
+	public:
+		struct point{
+			T d[kd];
+			inline T dist(const point &x)const{
+				T ret=0;
+				for(size_t i=0;i<kd;++i)ret+=std::abs(d[i]-x.d[i]);
+				return ret;
+			}
+			inline bool operator==(const point &p){
+				for(size_t i=0;i<kd;++i){
+					if(d[i]!=p.d[i])return 0;
+				}
+				return 1;
+			}
+			inline bool operator<(const point &b)const{
+				return d[0]<b.d[0];
+			}
+		};
+	private:
+		struct node{
+			node *l,*r;
+			point pid;
+			int s;
+			node(const point &p):l(0),r(0),pid(p),s(1){}
+			inline void up(){
+				s=(l?l->s:0)+1+(r?r->s:0);
+			}
+		}*root;
+		const double alpha,loga;
+		const T INF;//記得要給INF，表示極大值 
+		int maxn;
+		struct __cmp{
+			int sort_id;
+			inline bool operator()(const node*x,const node*y)const{
+				return operator()(x->pid,y->pid);
+			}
+			inline bool operator()(const point &x,const point &y)const{
+				if(x.d[sort_id]!=y.d[sort_id])
+					return x.d[sort_id]<y.d[sort_id];
+				for(size_t i=0;i<kd;++i){
+					if(x.d[i]!=y.d[i])return x.d[i]<y.d[i];
+				}
+				return 0;
+			}
+		}cmp;
+		void clear(node *o){
+			if(!o)return;
+			clear(o->l);
+			clear(o->r);
+			delete o;
+		}
+		inline int size(node *o){
+			return o?o->s:0;
+		}
+		std::vector<node*> A;
+		node* build(int k,int l,int r){
+			if(l>r)return 0;
+			if(k==kd)k=0;
+			int mid=(l+r)/2;
+			cmp.sort_id=k;
+			std::nth_element(A.begin()+l,A.begin()+mid,A.begin()+r+1,cmp);
+			node *ret=A[mid];
+			ret->l=build(k+1,l,mid-1);
+			ret->r=build(k+1,mid+1,r);
+			ret->up();
+			return ret;
+		}
+		inline bool isbad(node*o){
+			return size(o->l)>alpha*o->s||size(o->r)>alpha*o->s;
+		}
+		void flatten(node *u,typename std::vector<node*>::iterator &it){
+			if(!u)return;
+			flatten(u->l,it);
+			*it=u;
+			flatten(u->r,++it);
+		}
+		inline void rebuild(node*&u,int k){
+			if((int)A.size()<u->s)A.resize(u->s);
+			typename std::vector<node*>::iterator it=A.begin();
+			flatten(u,it);
+			u=build(k,0,u->s-1);
+		}
+		bool insert(node*&u,int k,const point &x,int dep){
+			if(!u){
+				u=new node(x);
+				return dep<=0;
+			}
+			++u->s;
+			cmp.sort_id=k;
+			if(insert(cmp(x,u->pid)?u->l:u->r,(k+1)%kd,x,dep-1)){
+				if(!isbad(u))return 1;
+				rebuild(u,k);
+			}
+			return 0;
+		}
+		node *findmin(node*o,int k){
+			if(!o)return 0; 
+			if(cmp.sort_id==k)return o->l?findmin(o->l,(k+1)%kd):o;
+			node *l=findmin(o->l,(k+1)%kd);
+			node *r=findmin(o->r,(k+1)%kd);
+			if(l&&!r)return cmp(l,o)?l:o;
+			if(!l&&r)return cmp(r,o)?r:o;
+			if(!l&&!r)return o;
+			if(cmp(l,r))return cmp(l,o)?l:o;
+			return cmp(r,o)?r:o;
+		}
+		bool erase(node *&u,int k,const point &x){
+			if(!u)return 0;
+			if(u->pid==x){
+				if(u->r);
+				else if(u->l){
+					u->r=u->l;
+					u->l=0;
+				}else{
+					delete u;
+					u=0;
+					return 1;
+				}
+				--u->s;
+				cmp.sort_id=k;
+				u->pid=findmin(u->r,(k+1)%kd)->pid;
+				return erase(u->r,(k+1)%kd,u->pid);
+			}
+			cmp.sort_id=k;
+			if(erase(cmp(x,u->pid)?u->l:u->r,(k+1)%kd,x)){
+				--u->s;return 1;
+			}else return 0;
+		}
+		inline T heuristic(const T h[])const{
+			T ret=0;
+			for(size_t i=0;i<kd;++i)ret+=h[i];
+			return ret;
+		}
+		int qM;
+		std::priority_queue<std::pair<T,point > >pQ;
+		void nearest(node *u,int k,const point &x,T *h,T &mndist){
+			if(u==0||heuristic(h)>=mndist)return;
+			T dist=u->pid.dist(x),old=h[k];
+			/*mndist=std::min(mndist,dist);*/
+			if(dist<mndist){
+				pQ.push(std::make_pair(dist,u->pid));
+				if((int)pQ.size()==qM+1){
+					mndist=pQ.top().first,pQ.pop();
+				}
+			}
+			if(x.d[k]<u->pid.d[k]){
+				nearest(u->l,(k+1)%kd,x,h,mndist);
+				h[k]=std::abs(x.d[k]-u->pid.d[k]);
+				nearest(u->r,(k+1)%kd,x,h,mndist);
+			}else{
+				nearest(u->r,(k+1)%kd,x,h,mndist);
+				h[k]=std::abs(x.d[k]-u->pid.d[k]);
+				nearest(u->l,(k+1)%kd,x,h,mndist);
+			}
+			h[k]=old;
+		}
+		std::vector<point>in_range;
+		void range(node *u,int k,const point&mi,const point&ma){
+			if(!u)return;
+			bool is=1;
+			for(int i=0;i<kd;++i)
+				if(u->pid.d[i]<mi.d[i]||ma.d[i]<u->pid.d[i]){
+					is=0;break;
+				}
+			if(is)in_range.push_back(u->pid);
+			if(mi.d[k]<=u->pid.d[k])range(u->l,(k+1)%kd,mi,ma);
+			if(ma.d[k]>=u->pid.d[k])range(u->r,(k+1)%kd,mi,ma);
+		}
+	public:
+		kd_tree(const T &INF,double a=0.75):root(0),alpha(a),loga(log2(1.0/a)),INF(INF),maxn(1){}
+		inline void clear(){
+			clear(root),root=0,maxn=1;
+		}
+		inline void build(int n,const point *p){
+			clear(root),A.resize(maxn=n);
+			for(int i=0;i<n;++i)A[i]=new node(p[i]);
+			root=build(0,0,n-1);
+		}
+		inline void insert(const point &x){
+			insert(root,0,x,std::__lg(size(root))/loga);
+			if(root->s>maxn)maxn=root->s;
+		}
+		inline bool erase(const point &p){
+			bool d=erase(root,0,p);
+			if(root&&root->s<alpha*maxn)rebuild();
+			return d;
+		}
+		inline void rebuild(){
+			if(root)rebuild(root,0);
+			maxn=root->s;
+		}
+		inline T nearest(const point &x,int k){
+			qM=k;
+			T mndist=INF,h[kd]={};
+			nearest(root,0,x,h,mndist);
+			mndist=pQ.top().first;
+			pQ=std::priority_queue<std::pair<T,point > >();
+			return mndist;/*回傳離x第k近的點的距離*/ 
+		}
+		inline const std::vector<point> &range(const point&mi,const point&ma){
+			in_range.clear();
+			range(root,0,mi,ma);
+			return in_range;/*回傳介於mi到ma之間的點vector*/ 
+		}
+		inline int size(){return root?root->s:0;}
+};
+#endif
+
+//Aho-Corasick Algorithm
+struct ACautomata{ 
+    struct Node{ 
+        int cnt,dp; 
+        Node *go[26], *fail; 
+        Node (){ 
+            cnt = 0; dp = -1; fail = 0;
+            memset(go,0,sizeof(go)); 
+            } 
+        }; 
+    Node *root, pool[1048576]; 
+    int nMem; 
+    Node* new_Node(){ 
+        pool[nMem] = Node(); 
+        return &pool[nMem++]; 
+        } 
+    void init(){ 
+        nMem = 0; 
+        root = new_Node();
+        } 
+    void add(const string &str){ 
+        insert(root,str,0); 
+        } 
+    void insert(Node *cur, const string &str, int pos){ 
+        if (pos >= (int)str.size()){ 
+            cur->cnt++;
+            return; 
+            } 
+        int c = str[pos]-'a'; 
+        if (cur->go[c] == 0)
+            cur->go[c] = new_Node(); 
+        insert(cur->go[c],str,pos+1); 
+        } 
+    void make_fail(){ 
+        queue<Node*> que; que.push(root); 
+        while (!que.empty()){ 
+            Node* fr=que.front(); que.pop(); 
+            for (int i=0; i<26; i++){ 
+                if (fr->go[i]){ 
+                    Node *ptr = fr->fail; 
+                    while (ptr && !ptr->go[i]) ptr = ptr->fail; 
+                    if (!ptr) fr->go[i]->fail = root; 
+                    else fr->go[i]->fail = ptr->go[i]; 
+                    que.push(fr->go[i]); 
+                    } 
+                } 
+            } 
+        } 
+    };
+
 //莫隊算法
+#define MAXQ 100000
+struct Q{
+	int l,r,i,block;
+	inline bool operator<(const Q &b)const{
+		return block==b.block?r<b.r:block<b.block;
+    	}
+    }q[MAXQ+5];
+int main(){
+    //input > q;
+    lim=1+(int)sqrt(n);
+    for(int i=0;i<m;++i){
+        scanf("%d%d",&q[i].l,&q[i].r);
+        q[i].block=q[i].l/lim;
+        q[i].i=i;
+        }
+    sort(q,q+m);
+    for(int i=0,L=1,R=0;i<m;++i){/*這是閉區間的寫法*/
+        while(R<q[i].r)add(s[++R]);
+        while(R>q[i].r)sub(s[R--]);
+        while(L>q[i].l)add(s[--L]);
+        while(L<q[i].l)sub(s[L++]);
+        ans[q[i].i]=cur_ans;
+        }
+    for(int i=0;i<m;++i)printf("%d\n",ans[i]);
+    }
+    
+//TODO
+//.vimrc
