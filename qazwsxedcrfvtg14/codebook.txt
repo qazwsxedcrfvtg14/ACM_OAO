@@ -2519,6 +2519,7 @@ struct DisjointSet {
         } 
     }djs;
 
+//link cut tree
 const int MXN = 100005; 
 const int MEM = 100005; 
 struct Splay { 
@@ -3125,5 +3126,187 @@ int main(){
     for(int i=0;i<m;++i)printf("%d\n",ans[i]);
     }
     
+//NTT2
+// 多项式乘法 系数对MOD=1000000007取模， 常数巨大，慎用
+// 只要选的K个素数乘积大于MOD*MOD*N,理论上MOD可以任取。
+#define MOD 1000000007
+#define K 3
+const int m[K] = {1004535809, 998244353, 104857601};
+#define G 3
+int qpow(int x, int k, int P) {
+	int ret = 1;
+	while(k) {
+		if(k & 1) ret = 1LL * ret * x % P;
+		k >>= 1;
+		x = 1LL * x * x % P;
+	    }
+	return ret;
+    }
+struct _NTT {
+	int wn[25], P;
+	void init(int _P) {
+		P = _P;
+		for(int i = 1; i <= 21; ++i) {      
+			int t = 1 << i;      
+			wn[i] = qpow(G, (P - 1) / t, P);      
+		    }
+        }
+	void change(int *y, int len) {
+		for(int i = 1, j = len / 2; i < len - 1; ++i) {      
+			if(i < j) swap(y[i], y[j]);      
+			int k = len / 2;      
+			while(j >= k) {      
+				j -= k;      
+				k /= 2;      
+    			}      
+			j += k;      
+	    	} 
+	    }
+	void NTT(int *y, int len, int on) {
+		change(y, len);      
+		int id = 0;
+		for(int h = 2; h <= len; h <<= 1) {      
+			++id;      
+			for(int j = 0; j < len; j += h) {      
+				int w = 1;      
+				for(int k = j; k < j + h / 2; ++k) {      
+					int u = y[k];      
+					int t = 1LL * y[k+h/2] * w % P;     
+					y[k] = u + t;      
+					if(y[k] >= P) y[k] -= P;      
+					y[k+h/2] = u - t + P;      
+					if(y[k+h/2] >= P) y[k+h/2] -= P;  
+					w = 1LL * w * wn[id] % P;
+				    }      
+			    }      
+		    }      
+		if(on == -1) {      
+			for(int i = 1; i < len / 2; ++i) swap(y[i], y[len-i]);      
+			int inv = qpow(len, P - 2, P);      
+			for(int i = 0; i < len; ++i)   
+				y[i] = 1LL * y[i] * inv % P;
+		    }      
+	    }
+	void mul(int A[], int B[], int len) {
+		NTT(A, len, 1);
+		NTT(B, len, 1);
+		for(int i = 0; i < len; ++i) A[i] = 1LL * A[i] * B[i] % P;
+		NTT(A, len, -1);
+	    }
+    }ntt[K];
+int tmp[N][K], t1[N], t2[N];
+int r[K][K];
+int CRT(int a[]) {
+	int x[K];
+	for(int i = 0; i < K; ++i) {
+		x[i] = a[i];
+		for(int j = 0; j < i; ++j) {
+			int t = (x[i] - x[j]) % m[i];
+			if(t < 0) t += m[i];
+			x[i] = 1LL * t * r[j][i] % m[i];
+		    }
+	    }
+	int mul = 1, ret = x[0] % MOD;
+	for(int i = 1; i < K; ++i) {
+		mul = 1LL * mul * m[i-1] % MOD;
+		ret += 1LL * x[i] * mul % MOD;
+		if(ret >= MOD) ret -= MOD;
+	    }
+	return ret;
+    }
+void mul(int A[], int B[], int len) {
+	for(int id = 0; id < K; ++id) {
+		for(int i = 0; i < len; ++i) {
+			t1[i] = A[i];
+			t2[i] = B[i];
+		    }
+		ntt[id].mul(t1, t2, len);
+		for(int i = 0; i < len; ++i) 
+			tmp[i][id] = t1[i];
+	    }
+	for(int i = 0; i < len; ++i) {
+		A[i] = CRT(tmp[i]);
+
+	    }
+    }
+
+void init() {
+	for(int i = 0; i < K; ++i) {
+		for(int j = 0; j < i; ++j) {
+			r[j][i] = qpow(m[j], m[i] - 2, m[i]);
+		    }
+	    }
+	for(int i = 0; i < K; ++i) {
+		ntt[i].init(m[i]);
+	    }
+    }
+
+//Eular
+#define maxn 10000000
+int euler[maxn+5];
+bool is_prime[maxn+5];
+void init_euler(){
+	is_prime[1]=1;//一不是質數
+	for(int i=1;i<=maxn;i++)euler[i]=i;
+	for(int i=2;i<=maxn;i++){
+		if(!is_prime[i]){//是質數
+			euler[i]--;
+			for(int j=i<<1;j<=maxn;j+=i){
+				is_prime[j]=1;
+				euler[j]=euler[j]/i*(i-1);
+			    }
+		    }
+	    }
+    }
+int Euler(int n){
+	int ans=n;
+	for(int i=2;i*i<=n;i++){
+		if(n%i==0){
+			ans=ans/i*(i-1);
+			while(n%i==0)n/=i;
+	    	}
+	    }
+	if(n>1)ans=ans/n*(n-1);
+	return ans;
+    }
+
+//Suffix Automaton 後綴自動機 
+#ifndef SUFFIX_AUTOMATON
+#define SUFFIX_AUTOMATON
+#include<vector>
+template<char L='a',char R='z'>
+struct suffix_automaton{
+	struct node{
+		int ch[R-L+1],fa,len;
+		node(int l=0):fa(0),len(l){
+			for(int i=0;i<=R-L;++i)ch[i]=0;
+		}
+	};
+	std::vector<node >S;
+	int tail,u,v,np,vp;
+	suffix_automaton():S(2),tail(1){S[0].fa=0;}
+	inline void add(int c){
+		c-=L;
+		u=tail;
+		S.push_back(node(S[u].len+1));
+		tail=np=S.size()-1;
+		for(;u&&!S[u].ch[c];u=S[u].fa)S[u].ch[c]=np;
+		if(!u)S[np].fa=1;
+		else{
+			v=S[u].ch[c];
+			if(S[v].len==S[u].len+1)S[np].fa=v;
+			else{
+				S.push_back(S[v]);
+				vp=S.size()-1;
+				S[vp].len=S[u].len+1;
+				S[v].fa=S[np].fa=vp;
+				for(;u&&S[u].ch[c]==v;u=S[u].fa)S[u].ch[c]=vp;
+			}
+		}
+	}
+	inline int size(){return S.size()-2;}
+};
+#endif
+
 //TODO
 //.vimrc
