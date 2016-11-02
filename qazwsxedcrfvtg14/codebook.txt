@@ -3308,5 +3308,114 @@ struct suffix_automaton{
 };
 #endif
 
-//TODO
-//.vimrc
+//平面最小生成樹
+#define N 50010
+int n;
+int x[N], y[N];
+struct Node {
+    int x, y, lab;
+    Node(int _x = 0, int _y = 0, int _lab = 0):x(_x),y(_y),lab(_lab){}
+    bool operator < (const Node &B) const {
+        return (x > B.x || (x == B.x && y > B.y)); 
+        }
+    }S[N];
+struct Edge {
+    int from, to, len;
+    Edge(int _from = 0, int _to = 0, int _len = 0):from(_from),to(_to),len(_len){}
+    bool operator < (const Edge &B) const {
+        return len < B.len;
+        }
+    }E[N << 2];
+int top;
+int sa[N], rank[N], change[N];
+inline bool cmp(const int &a, const int &b) {
+    return S[a].y - S[a].x > S[b].y - S[b].x;
+}
+int A[N];
+int ask(int p) {
+    int res = 0;
+    for(; p; p -= p & -p)
+        if (S[change[res]].x + S[change[res]].y > S[change[A[p]]].x + S[change[A[p]]].y)
+            res = A[p];
+    return res;
+    }
+void modify(int p, int ins) {
+    for(; p <= n; p += p & -p)
+        if (S[change[ins]].x + S[change[ins]].y < S[change[A[p]]].x + S[change[A[p]]].y)
+            A[p] = ins;
+    }
+void AddEdge() {
+    register int i, j, k;
+    for(i = 1; i <= n; ++i)
+        sa[i] = i;
+    sort(sa + 1, sa + n + 1, cmp);
+    int id = 0;
+    for(i = 1; i <= n; ) {
+        for(j = i; S[sa[j]].y - S[sa[j]].x == S[sa[j + 1]].y - S[sa[j + 1]].x && j < n; ++j);
+        ++id;
+        for(k = i; k <= j; ++k)
+            rank[sa[k]] = id;
+        i = j + 1;
+        }
+    sort(S + 1, S + n + 1);
+    for(i = 1; i <= n; ++i)
+        change[S[i].lab] = i;
+    memset(A, 0, sizeof(A));
+    for(i = 1; i <= n; ++i) {
+        int get = ask(rank[S[i].lab]);
+        if (get != 0)
+            E[++top] = Edge(S[i].lab, get, _abs(x[S[i].lab] - x[get]) + _abs(y[S[i].lab] - y[get]));
+        modify(rank[S[i].lab], S[i].lab);
+        }
+    }
+int root[N];
+void reset() {
+    for(int i = 1; i <= n; ++i)
+        root[i] = i;
+    }
+int find(int x) {
+    int q = x, tmpq;
+    for(; x != root[x]; x = root[x]);
+    for(; q != x; q = tmpq)
+        tmpq = root[q], root[q] = x;
+    return x;
+    }
+long long Kruskal() {
+    sort(E + 1, E + top + 1);
+    reset();
+    register int i;
+    int ra, rb, intree = 0;
+    long long res = 0;
+    for(i = 1; i <= top; ++i) {
+        ra = find(E[i].from);
+        rb = find(E[i].to);
+        if (ra != rb) {
+            root[ra] = rb;
+            res += E[i].len;
+            if (++intree == n - 1)
+                return res;
+            }
+        }
+    return -1;
+    }
+int main() {
+    n = getint();
+    register int i;
+    for(i = 1; i <= n; ++i)
+        x[i] = getint(), y[i] = getint();
+    S[0].x = S[0].y = 0x3f3f3f3f;
+    for(i = 1; i <= n; ++i)
+        S[i] = Node(x[i], y[i], i);
+    AddEdge();
+    for(i = 1; i <= n; ++i)
+        S[i] = Node(y[i], x[i], i);
+    AddEdge();
+    for(i = 1; i <= n; ++i)
+        S[i] = Node(-y[i], x[i], i);
+    AddEdge();
+    for(i = 1; i <= n; ++i)
+        S[i] = Node(x[i], -y[i], i);
+    AddEdge();
+    printf("%lld", Kruskal());   
+    return 0;
+    }
