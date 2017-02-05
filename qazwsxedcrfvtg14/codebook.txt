@@ -2200,7 +2200,7 @@ void get_next(int m)
    return ;
 }
 
-//DominatorTree::build(int n,int s,vector<int> nod[],vector<int> rnod[],vector<int> result)
+//DominatorTree::build(int n,int s,vector<int> nod[],vector<int> rnod[],vector<int> result[])
 const int N=200000+10;
 namespace DominatorTree{
     int dfn[N],pre[N],pt[N],sz;
