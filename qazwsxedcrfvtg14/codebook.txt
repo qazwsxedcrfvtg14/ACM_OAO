@@ -438,65 +438,68 @@ void mak_H(){
     }
 
 //Suﬃx Array (SAIS TWT514)
-struct SA{ 
-    #define REP(i,n) for ( int i=0; i<int(n); i++ ) 
-    #define REP1(i,a,b) for ( int i=(a); i<=int(b); i++ ) 
-    static const int MXN = 300010; 
-    bool _t[MXN*2]; 
-    int _s[MXN*2], _sa[MXN*2], _c[MXN*2], x[MXN], _p[ MXN], _q[MXN*2], hei[MXN], r[MXN]; 
-    int operator [] (int i){ return _sa[i]; } 
-    void build(int *s, int n, int m){ 
-        memcpy(_s, s, sizeof(int) * n); 
-        sais(_s, _sa, _p, _q, _t, _c, n, m); 
-        mkhei(n); 
-        } 
-    void mkhei(int n){ 
-        REP(i,n) r[_sa[i]] = i; 
-        hei[0] = 0; 
-        REP(i,n) if(r[i]) { 
+struct SA{
+    #define REP(i,n) for ( int i=0; i<int(n); i++ )
+    #define REP1(i,a,b) for ( int i=(a); i<=int(b); i++ )
+    static const int MXN = 300010;
+    bool _t[MXN*2];
+    int _s[MXN*2], _sa[MXN*2], _c[MXN*2], x[MXN], _p[ MXN], _q[MXN*2], hei[MXN], r[MXN];
+    int operator [] (int i){ return _sa[i]; }
+    void build(int *s, int n, int m){
+        memcpy(_s, s, sizeof(int) * n);
+        sais(_s, _sa, _p, _q, _t, _c, n, m);
+        mkhei(n);
+        }
+    void mkhei(int n){
+        REP(i,n) r[_sa[i]] = i;
+        hei[0] = 0;
+        REP(i,n) if(r[i]) {
             int ans = i>0 ? max(hei[r[i-1]] - 1, 0) : 0;
-            while(_s[i+ans] == _s[_sa[r[i]-1]+ans]) ans++; 
+            while(_s[i+ans] == _s[_sa[r[i]-1]+ans]) ans++;
             hei[r[i]] = ans;
             }
-        } 
-    void sais(int *s, int *sa, int *p, int *q, bool *t, int *c, int n, int z){ 
-        bool uniq = t[n-1] = true, neq; 
-        int nn = 0, nmxz = -1, *nsa = sa + n, *ns = s + n, lst = -1; 
-#define MS0(x,n) memset((x),0,n*sizeof(*(x))) 
-#define MAGIC(XD) MS0(sa, n); \ 
-        memcpy(x, c, sizeof(int) * z); \ 
-        XD; \ 
+        }
+    void sais(int *s, int *sa, int *p, int *q, bool *t, int *c, int n, int z){
+        bool uniq = t[n-1] = true, neq;
+        int nn = 0, nmxz = -1, *nsa = sa + n, *ns = s + n, lst = -1;
+#define MS0(x,n) memset((x),0,n*sizeof(*(x)))
+#define MAGIC(XD) MS0(sa, n); \
+        memcpy(x, c, sizeof(int) * z); \
+        XD; \
         memcpy(x + 1, c, sizeof(int) * (z - 1)); \
         REP(i,n) if(sa[i] && !t[sa[i]-1]) sa[x[s[sa[i ]-1]]++] = sa[i]-1; \
-        memcpy(x, c, sizeof(int) * z); \ 
-        for(int i = n - 1; i >= 0; i--) if(sa[i] && t[ sa[i]-1]) sa[--x[s[sa[i]-1]]] = sa[i]-1; 
-        MS0(c, z); 
-        REP(i,n) uniq &= ++c[s[i]] < 2; 
-        REP(i,z-1) c[i+1] += c[i]; 
-        if (uniq) { REP(i,n) sa[--c[s[i]]] = i; return; } 
-        for(int i = n - 2; i >= 0; i--) 
-            t[i] = (s[i]==s [i+1] ? t[i+1] : s[i]<s[i+1]); 
-        MAGIC(REP1(i,1,n-1) 
-        if(t[i] && !t[i-1]) 
-            sa[--x[ s[i]]]=p[q[i]=nn++]=i); 
-        REP(i, n) if (sa[i] && t[sa[i]] && !t[sa[i]-1]) { 
-            neq=lst<0||memcmp(s+sa[i],s+lst,(p[q[sa[i ]]+1]-sa[i])*sizeof(int)); 
-            ns[q[lst=sa[i]]]=nmxz+=neq; 
-            } 
-        sais(ns, nsa, p + nn, q + n, t + n, c + z, nn, nmxz + 1); 
+        memcpy(x, c, sizeof(int) * z); \
+        for(int i = n - 1; i >= 0; i--) if(sa[i] && t[ sa[i]-1]) sa[--x[s[sa[i]-1]]] = sa[i]-1;
+        MS0(c, z);
+        REP(i,n) uniq &= ++c[s[i]] < 2;
+        REP(i,z-1) c[i+1] += c[i];
+        if (uniq) { REP(i,n) sa[--c[s[i]]] = i; return; }
+        for(int i = n - 2; i >= 0; i--)
+            t[i] = (s[i]==s [i+1] ? t[i+1] : s[i]<s[i+1]);
+        MAGIC(REP1(i,1,n-1)
+        if(t[i] && !t[i-1])
+            sa[--x[ s[i]]]=p[q[i]=nn++]=i);
+        REP(i, n) if (sa[i] && t[sa[i]] && !t[sa[i]-1]) {
+            neq=lst<0||memcmp(s+sa[i],s+lst,(p[q[sa[i ]]+1]-sa[i])*sizeof(int));
+            ns[q[lst=sa[i]]]=nmxz+=neq;
+            }
+        sais(ns, nsa, p + nn, q + n, t + n, c + z, nn, nmxz + 1);
         MAGIC(for(int i = nn - 1; i >= 0; i--) sa[--x[s [p[nsa[i]]]]] = p[nsa[i]]);
-        } 
-    }sa; 
-void suffix_array(int* ip, int len) { 
-    // should padding a zero in the back 
-    // s is int array, n is array length 
-    // s[0..n-1] != 0, and s[n] = 0 
-    // resulting SA will be length n+1 
-    ip[len++] = 0; sa.build(ip, len, 128); 
-    // original 1-base 
-    for (int i=0; i<l; i++) { 
-        hei[i] = sa.hei[i + 1]; 
-        sa[i] = sa._sa[i + 1]; 
+        }
+    }sa;
+
+int _hei[200001], _sa[200001];
+
+void suffix_array(int* ip, int len) {
+    // should padding a zero in the back
+    // s is int array, n is array length
+    // s[0..n-1] != 0, and s[n] = 0
+    // resulting SA will be length n+1
+    ip[len++] = 0; sa.build(ip, len, 128);
+    // original 1-base
+    for (int i=0; i<len; i++) {
+        _hei[i] = sa.hei[i + 1];
+        _sa[i] = sa._sa[i + 1];
         }
     }
 
@@ -3419,3 +3422,220 @@ int main() {
     printf("%lld", Kruskal());   
     return 0;
     }
+    
+    //線性規劃
+    const int MAXN = 111;
+const int MAXM = 111;
+const double eps = 1E-10;
+double a[MAXN][MAXM], b[MAXN], c[MAXM], d[MAXN][MAXM];
+double x[MAXM];
+int ix[MAXN + MAXM]; // !!! array all indexed from 0
+// max{cx} subject to {Ax<=b,x>=0}
+// n: constraints, m: vars !!!
+// x[] is the optimal solution vector
+// usage : 
+// value = simplex(a, b, c, N, M);
+double simplex(double a[MAXN][MAXM], double b[MAXN],
+               double c[MAXM], int n, int m){
+  ++m;
+  int r = n, s = m - 1;
+  memset(d, 0, sizeof(d));
+  for (int i = 0; i < n + m; ++i) ix[i] = i;
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m - 1; ++j) d[i][j] = -a[i][j];
+    d[i][m - 1] = 1;
+    d[i][m] = b[i];
+    if (d[r][m] > d[i][m]) r = i;
+  }
+  for (int j = 0; j < m - 1; ++j) d[n][j] = c[j];
+  d[n + 1][m - 1] = -1;
+  for (double dd;; ) {
+    if (r < n) {
+      int t = ix[s]; ix[s] = ix[r + m]; ix[r + m] = t;
+      d[r][s] = 1.0 / d[r][s];
+      for (int j = 0; j <= m; ++j)
+        if (j != s) d[r][j] *= -d[r][s];
+      for (int i = 0; i <= n + 1; ++i) if (i != r) {
+        for (int j = 0; j <= m; ++j) if (j != s)
+          d[i][j] += d[r][j] * d[i][s];
+        d[i][s] *= d[r][s];
+      }
+    }
+    r = -1; s = -1;
+    for (int j = 0; j < m; ++j)
+      if (s < 0 || ix[s] > ix[j]) {
+        if (d[n + 1][j] > eps ||
+            (d[n + 1][j] > -eps && d[n][j] > eps))
+          s = j;
+      }
+    if (s < 0) break;
+    for (int i = 0; i < n; ++i) if (d[i][s] < -eps) {
+      if (r < 0 ||
+          (dd = d[r][m] / d[r][s] - d[i][m] / d[i][s]) < -eps ||
+          (dd < eps && ix[r + m] > ix[i + m]))
+        r = i;
+    }
+    if (r < 0) return -1; // not bounded
+  }
+  if (d[n + 1][m] < -eps) return -1; // not executable
+  double ans = 0;
+  for(int i=0; i<m; i++) x[i] = 0;
+  for (int i = m; i < n + m; ++i) { // the missing enumerated x[i] = 0
+    if (ix[i] < m - 1){
+      ans += d[i - m][m] * c[ix[i]];
+      x[ix[i]] = d[i-m][m];
+    }
+  }
+  return ans; 
+}
+
+// undirected graph minimum cut 
+typedef vector<int> VI;
+typedef vector<VI> VVI;
+
+const int INF = 1000000000;
+
+pair<int, VI> GetMinCut(VVI &weights) {
+  int N = weights.size();
+  VI used(N), cut, best_cut;
+  int best_weight = -1;
+
+  for (int phase = N-1; phase >= 0; phase--) {
+    VI w = weights[0];
+    VI added = used;
+    int prev, last = 0;
+    for (int i = 0; i < phase; i++) {
+      prev = last;
+      last = -1;
+      for (int j = 1; j < N; j++)
+	if (!added[j] && (last == -1 || w[j] > w[last])) last = j;
+      if (i == phase-1) {
+	for (int j = 0; j < N; j++) weights[prev][j] += weights[last][j];
+	for (int j = 0; j < N; j++) weights[j][prev] = weights[prev][j];
+	used[last] = true;
+	cut.push_back(last);
+	if (best_weight == -1 || w[last] < best_weight) {
+	  best_cut = cut;
+	  best_weight = w[last];
+	}
+      } else {
+	for (int j = 0; j < N; j++)
+	  w[j] += weights[last][j];
+	added[last] = true;
+      }
+    }
+  }
+  return make_pair(best_weight, best_cut);
+}
+
+// SuffixAutomaton
+#include<bits/stdc++.h>
+using namespace std;
+#define MAXNODE 2000005
+#define SIGMA 26
+struct node{
+    node *fail,*ch[SIGMA];
+    int len,cnt,vis;
+    node() {fail=0;len=cnt=vis=0;memset(ch,0,sizeof ch);}
+}mem[MAXNODE], *root, *last;
+
+int str_cnt;
+
+struct SuffixAutomaton{
+    int size;
+    inline int idx(char c){return c-'a';}
+    inline void init(){
+        size = 0;
+        root = last = &mem[0];
+    }
+    // main SAM
+    inline void add(char c){
+        c = idx(c);
+        node *pre = last;
+        node *now = &mem[++size];
+        now->len = pre->len+1;
+        while(pre && !pre->ch[c]){
+            pre->ch[c] = now;
+            pre = pre->fail;
+        }
+        if(!pre) now->fail = root;
+        else{
+            node *q = pre->ch[c];
+            if(q->len == pre->len+1) now->fail = q;
+            else
+            {
+                node *nq = &mem[++size];
+                nq->len = pre->len+1;
+                memcpy(nq->ch, q->ch, sizeof(q->ch));
+                nq->fail = q->fail;
+                q->fail = now->fail = nq;
+                while(pre && pre->ch[c] == q){
+                    pre->ch[c] = nq;
+                    pre=pre->fail;
+                }
+            }
+        }
+        last = now;
+    }
+    // solve problem
+    int C[MAXNODE], ord[MAXNODE];
+    void build_cnt(char* s,int n){
+        for(int i = 0; i <= size; i++) C[mem[i].len]++;
+        for(int i = 1; i <= size; i++) C[i] += C[i-1];
+        for(int i = 0; i <= size; i++) ord[--C[mem[i].len]] = i;
+        node* now = root;
+        for(int i = 0; i < n; i++){
+            int c = idx(s[i]);
+            now = now->ch[c];
+            now->cnt = 1;
+        }
+        for(int i = size; i >= 0; i--){
+            now = &mem[ord[i]];
+            if(now->fail) now->fail->cnt += now->cnt;
+        }
+    }
+
+    int solve(char* s){
+        str_cnt++;
+        int n = strlen(s), cnt = 0, ans = 0;
+        node* now = root;
+        for(int i = 0; i < n-1; i++){
+            int c = idx(s[i]);
+            if(now->ch[c]) cnt++, now = now->ch[c];
+            else{
+                while(now && !now->ch[c]) now = now->fail;
+                if(!now) cnt=0, now=root;
+                else cnt = now->len+1, now = now->ch[c];
+            }
+            while(cnt >= n/2 && now->fail && now->fail->len >= n/2){
+                cnt = now->fail->len;
+                now = now->fail;
+            }
+            if(cnt >= n/2 && now->vis != str_cnt){
+                ans += now->cnt;
+                now->vis = str_cnt;
+            }
+        }
+        return ans;
+    }
+}SAM;
+
+char s[MAXNODE];
+int main(){
+    SAM.init();
+    scanf("%s",s);
+    int n=strlen(s);
+    for(int i=0;i<n;i++){
+        SAM.add(s[i]);
+    }
+    SAM.build_cnt(s,n);
+    int t;
+    scanf("%d",&t);
+    while(t--){
+        scanf("%s",s);
+        n=strlen(s);
+        for(int i=n;i<n*2;i++) s[i]=s[i-n];
+        s[n*2]=0;
+        printf("%d\n",SAM.solve(s));
+    }
+}
