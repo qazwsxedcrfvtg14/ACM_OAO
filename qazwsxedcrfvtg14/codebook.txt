@@ -512,7 +512,7 @@ struct node{
     unsigned int sz;
     node(int _v,ptr _fa=nil){v=_v,sz=1,l=r=nil,fa=_fa;}
     inline void push(){fa=nil;}
-    inline void pull(){sz=(l?l->sz:0)+(r?r->sz:0);if(l)l->fa=this;if(r)r->fa=this;}
+    inline void pull(){sz=(l?l->sz:0)+(r?r->sz:0)+1;if(l)l->fa=this;if(r)r->fa=this;}
     };
 ptr merge(ptr a,ptr b){
     static unsigned int S=rand();
