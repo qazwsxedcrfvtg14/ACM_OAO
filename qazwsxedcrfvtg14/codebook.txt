@@ -531,6 +531,13 @@ void split(ptr now,int k,ptr &a,ptr &b){
     else
         b=now,b->push(),split(now->l,k,a,b->l),b->pull();
     }
+void split_kth(ptr now,int k,ptr &a,ptr &b){
+    if(now==nil)a=b=nil;
+    else if(now->l->sz<k)
+        a=now,a->push(),split_kth(now->r,k-now->l->sz,a->r,b),a->pull();
+    else
+        b=now,b->push(),split_kth(now->l,k,a,b->l),b->pull();
+    }
 struct treap{
     ptr root;
     treap(){root=nil;}
@@ -540,11 +547,12 @@ struct treap{
         root=merge(merge(a,new node(k)),b);
         }
     void erase(int k){
-        ptr a=nil,b=nil,c=nil;
-        split(root,k-1,a,b);
-        split(b,k,b,c);
-        delete b;
-        root=merge(a,c);
+        ptr a=nil,b=nil,c=nil,d=nil;
+        split(root,k,a,b);
+        split_kth(b,1,c,d);
+        if(c!=nil)
+            delete c;
+        root=merge(a,d);
         }
     ptr kth(ptr rot,unsigned int k){//0base
         if(k<rot->l->sz)return kth(rot->l,k);
