@@ -554,6 +554,16 @@ struct treap{
             delete c;
         root=merge(a,d);
         }
+    void push_back(int k){
+        root=merge(root,new node(k));
+        }
+    void pop_back(int k){
+        ptr a=nil,b=nil;
+        if(root->sz)return;
+        split_kth(root,root->sz-1,a,b);
+        delete b;
+        root=a;
+        }
     ptr kth(ptr rot,unsigned int k){//0base
         if(k<rot->l->sz)return kth(rot->l,k);
         if(k==rot->l->sz)return rot;
@@ -3651,3 +3661,127 @@ int main(){
         printf("%d\n",SAM.solve(s));
     }
 }
+
+//Templated Treap
+#define temT template<typename T>
+temT struct nna{static const nna obj;};
+temT nna<T> const nna<T>::obj={};
+temT struct node;
+temT using ptr=node<T>*;
+temT struct node{
+    typedef node<T>* ptr;
+    static node<T> nil_obj;
+    static ptr nil;
+    ptr l,r,fa;
+    T v;
+    unsigned int sz;
+    node(T _v,ptr _fa=nil){v=_v,sz=1,l=r=nil,fa=_fa;}
+    node(nna<T>){v=0,sz=0,fa=l=r=nil;}
+    void push(){fa=nil;}
+    void pull(){sz=l->sz+r->sz+1;if(l!=nil)l->fa=this;if(r!=nil)r->fa=this;}
+    ptr top(){
+        ptr now=this;
+        if(fa)now=fa->top();
+        return now;
+        }
+    ptr left(){
+        if(l)return l->left();
+        return this;
+        }
+    ptr right(){
+        if(r)return r->right();
+        return this;
+        }
+    ptr next(){
+        if(r)return r->left();
+        ptr now=this;
+        while(now->fa)
+            if(now->fa->l==now)return now->fa;
+            else now=now->fa;
+        return nil;
+        }
+    ptr pre(){
+        if(l)return l->right();
+        ptr now=this;
+        while(now->fa)
+            if(now->fa->r==now)return now->fa;
+            else now=now->fa;
+        return nil;
+        }
+    };
+temT node<T> node<T>::nil_obj(nna<T>::obj);
+temT ptr<T> node<T>::nil=&node<T>::nil_obj;
+temT struct treap{
+    typedef node<T>* ptr;
+    typedef node<T> node;
+    ptr &nil=node::nil;
+    ptr root;
+    treap(){root=nil;}
+    ptr merge(ptr a,ptr b){
+        static unsigned int S=rand();
+        if(a==nil)return b;
+        if(b==nil)return a;
+        if((S++)%(a->sz+b->sz)<a->sz){a->push(),a->r=merge(a->r,b),a->pull();return a;}
+        else{b->push(),b->l=merge(a,b->l),b->pull();return b;}
+        }
+    void split(ptr now,T k,ptr &a,ptr &b){
+        if(now==nil)a=b=nil;
+        else if(now->v<k)
+            a=now,a->push(),split(now->r,k,a->r,b),a->pull();
+        else
+            b=now,b->push(),split(now->l,k,a,b->l),b->pull();
+        }
+    void split_kth(ptr now,unsigned int k,ptr &a,ptr &b){
+        if(now==nil)a=b=nil;
+        else if(now->l->sz<k)
+            a=now,a->push(),split_kth(now->r,k-now->l->sz,a->r,b),a->pull();
+        else
+            b=now,b->push(),split_kth(now->l,k,a,b->l),b->pull();
+        }
+    void insert(T k){
+        ptr a=nil,b=nil;
+        split(root,k,a,b);
+        root=merge(merge(a,new node(k)),b);
+        }
+    void erase(T k){
+        ptr a=nil,b=nil,c=nil,d=nil;
+        split(root,k,a,b);
+        split_kth(b,1,c,d);
+        if(c!=nil)
+            delete c;
+        root=merge(a,d);
+        }
+    void push_back(T k){
+        root=merge(root,new node(k));
+        }
+    void pop_back(){
+        ptr a=nil,b=nil;
+        if(root->sz)return;
+        split_kth(root,root->sz-1,a,b);
+        delete b;
+        root=a;
+        }
+    ptr kth(ptr rot,unsigned int k){//0base
+        if(k<rot->l->sz)return kth(rot->l,k);
+        if(k==rot->l->sz)return rot;
+        return kth(rot->r,k-rot->l->sz-1);
+        }
+    node& operator[](unsigned int k){
+        if(k>=root->sz)return *nil;
+        return *kth(root,k);
+        }
+    ptr lower_bound(T k){
+        ptr now=root,pri=nil;
+        while(now!=nil)
+            if(k<=now->v)pri=now,now=now->l;
+            else now=now->r;
+        return pri;
+        }
+    ptr upper_bound(T k){
+        ptr now=root,pri=nil;
+        while(now!=nil)
+            if(k<now->v)pri=now,now=now->r;
+            else now=now->l;
+        return pri;
+        }
+    };
