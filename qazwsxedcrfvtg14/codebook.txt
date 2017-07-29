@@ -3445,8 +3445,8 @@ int main() {
     return 0;
     }
     
-    //線性規劃
-    const int MAXN = 111;
+//線性規劃
+const int MAXN = 111;
 const int MAXM = 111;
 const double eps = 1E-10;
 double a[MAXN][MAXM], b[MAXN], c[MAXM], d[MAXN][MAXM];
@@ -3785,3 +3785,107 @@ temT struct treap{
         return pri;
         }
     };
+
+// MaxCostMaxFlow
+const int MAXN=10005,MAXM=MAXN*4,INF=~0U>>1;
+struct Queue{
+    int Q[MAXN],head,tail,size;
+    bool inq[MAXN];
+    Queue(){
+        memset(inq,0,sizeof(inq));
+        head=size=0;
+        tail=-1;
+        }
+    void ins(int p){
+        inq[p]=true;
+        if (++tail>=MAXN)tail=0;
+        Q[tail]=p;
+        size++;
+        }
+    int pop(){
+        int p=Q[head];
+        if(++head>=MAXN)head=0;
+        inq[p]=false;
+        size--;
+        return p;
+        }
+    }Q;
+struct edge{
+    edge *next,*op;
+    int t,c,v;
+    }ES[MAXM],*V[MAXN],*fe[MAXN];
+int N,EC,S,T,CostFlow;
+int dist[MAXN],ft[MAXN];
+inline void addedge(int a,int b,int c,int v){
+    //c: capacity, v: cost
+    ES[++EC].next=V[a];
+    V[a]=ES+EC;
+    V[a]->t=b;
+    V[a]->c=c;
+    V[a]->v=v;
+    ES[++EC].next=V[b];
+    V[b]=ES+EC;
+    V[b]->t=a;
+    V[b]->c=0;
+    V[b]->v=-v;
+    V[a]->op=V[b];
+    V[b]->op=V[a];
+    }
+int D;
+void init(){
+    int n,m;
+    scanf("%d%d%d",&n,&m,&D);
+    N=n*2+2;
+    EC=0;
+    CostFlow=0;
+    for(int i=0;i<=N;i++)
+        ft[i]=0,V[i]=NULL;
+    for(int i=1;i<=n;i++)
+        addedge(i,i+n,1,1),
+        addedge(N-1,i,1,0),
+        addedge(i+n,N,1,0);
+    for(int i=0;i<m;i++){
+        int a,b;
+        scanf("%d%d",&a,&b);
+        addedge(a+n,b,1,0);
+        }
+    S=N-1;
+    T=N;
+    }
+bool spfa(){
+    for(int i=1;i<=N;i++)
+        dist[i]=-INF;
+        // dist[i]=INF; //MinCost
+    dist[S]=0;
+    Q.ins(S);
+    while(Q.size){
+        int i=Q.pop();
+        for(edge *e=V[i];e;e=e->next){
+            int j=e->t;
+            if(e->c&&dist[i]+e->v>dist[j]){
+            // if(e->c&&dist[i]+e->v<dist[j]){ //MinCost
+                dist[j]=dist[i]+e->v;
+                ft[j]=i;
+                fe[j]=e;
+                if(!Q.inq[j])
+                    Q.ins(j);
+                }
+            }
+        }
+    return dist[T]!=-INF;
+    }
+void aug(){
+    int delta=INF;
+    for(int i=T;i!=S;i=ft[i])
+        if(fe[i]->c<delta)
+            delta=fe[i]->c;
+    for(int i=T;i!=S;i=ft[i]){
+        fe[i]->c-=delta;
+        fe[i]->op->c+=delta;
+        CostFlow+=fe[i]->v*delta;
+        }
+    }
+void solve(){
+    for(int i=0;i<D&&spfa();i++)
+        aug();
+    }
