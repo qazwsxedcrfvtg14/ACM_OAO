@@ -3890,7 +3890,7 @@ void solve(){
         aug();
     }
 
-//園內接最大三角形
+//圓內接最大三角形
 const int N=10005;
 const long double eps=0;
 struct vec{
