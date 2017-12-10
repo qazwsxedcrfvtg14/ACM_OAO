@@ -1,43 +1,3 @@
-//bit binary indexed tree  //index 1~n
-void insert(int a,int val){
-    while(a<=n){
-        bit[a]+=val;
-        a+=a&-a;
-        }
-}
-int sum(int a){          //query sum [1,a]
-    int ans=0;
-    while(a){
-        ans+=bit[a];
-        a-=a&-a;
-        }
-    return ans;
-}
-
-//線段樹
-int max(int a,int b){return a>b?a:b;}
-void mkt(int idx,int L,int R){
-    if(L==R){tree[idx]=ar[L];return;}
-    int mid=L+R>>1,lidx=idx*2+1;
-    mkt(lidx,L,mid);
-    mkt(lidx+1,mid+1,R);
-    tree[idx]=max(tree[lidx],tree[lidx+1]);
-}
-int qry(int idx,int L,int R,int x,int y){
-    if(y<L||x>R)return -100000;
-    if(L>=x&&R<=y)return tree[idx];
-    int mid=L+R>>1,lidx=idx*2+1;
-    return max(qry(lidx,L,mid,x,y),qry(lidx+1,mid+1,R,x,y));
-}
-mkt(0,0,n-1);
-scanf("%d",&m);
-while(m--){
-    int i,j;
-    scanf("%d%d",&i,&j);
-    if(i>j){int l=i;i=j;j=l;}
-    printf("%d\n",qry(0,0,n-1,i-1,j-1));
-    }
-
 //Static RMQ 
 void make(int n){            //區間最大最小值
     for(int i=0; i<n;i++)
@@ -55,16 +15,6 @@ unsigned int qry(int a,int b){  //查詢區間最大最小值
 //畢氏數特性：
 (m,n)=1
 m^2-n^2, 2mn, m^2+n^2
-
-//最大公因數
-int gcd(int a,int b){
-    int c;
-    while(b!=0){
-        a%=b;
-        c=a;a=b;b=c;
-        }
-    return a;
-    }
 
 //模逆元
 long long int inverse(long long int a, long long int m){ 
@@ -99,7 +49,6 @@ LL ex_crt(LL *m,LL *r,int n){
         }
     return R>0?R:R+M;
     }
-
 
 //模逆元
 LL modInv (LL a, LL m) {
@@ -316,23 +265,6 @@ int main(){
 p.s.在函數名稱後面加ll就可以用在long long int 上了。
 31 - __builtin_clz(a)   取log2(a)==__lg(a)
 
-//靜態區間最大值
-const int N = 1000;
-const int logN = ceil(log2(N));
-int value[N];
-int t[logN][N]; // t[i][j]儲存區間[j, j+(2^i)-1]的最小值的索引值
-void construct(){
-    for (int i=0; i<N; ++i)
-        t[0][i] = value[i];
-    for (int i=1; (1<<i)<=N; ++i)
-        for (int j=0; j+(1<<i)<=N; ++j)
-            t[i][j] = min(t[i-1][j], t[i-1][j+(1<<(i-1))]);
-}
-int query(int a, int b){
-    int p = 31 - __builtin_clz(abs(b - a) + 1);
-    return min(t[p][a], t[p][b-(1<<p)+1]);
-}
-
 //KMP
     while(~scanf("%s",s)){
         int len=strlen(s);
@@ -366,78 +298,58 @@ int query(int a, int b){
         }
 
 //SA+H
-const int N=100005;
-char s[N];
-int n,SA[N],rk[2][N];
-void mak_SA(){
-    int n=strlen(s)+1;
-    for(int i=0;i<n;i++)
-        rk[0][i]=s[i],SA[i]=i;
-    for(int k=0;(1<<k)<n;k++){
-        int pri=k&1,now=~k&1;
-        sort(SA,SA+n,[&pri,&k](int a,int b){
-            if(rk[pri][a]==rk[pri][b])return rk[pri][a+(1<<k)]<rk[pri][b+(1<<k)];
-            return rk[pri][a]<rk[pri][b];
-            });
-        int cnt=0;
-        rk[now][SA[0]]=cnt;
-        for(int i=1;i<n;i++){
-            cnt+=(rk[pri][SA[i-1]]!=rk[pri][SA[i]]) || (rk[pri][SA[i-1]+(1<<k)]!=rk[pri][SA[i]+(1<<k)]);
-            rk[now][SA[i]]=cnt;
-            }
-        if(cnt==n)return;
-        }
-    }
-int SA[N],buk[N],rk1[N],rk2[N]; 
-void mak_SA2(){//buggy
-    int n=strlen(s)+1;
-    int *rnk=rk1,*rp=rk2;
-    for(int i=0;i<n;i++)
-        rp[i]=s[i];
-    sort(rp,rp+n);
-    int m=unique(rp,rp+n)-rp;
-    for(int i=0;i<m;i++)buk[i]=0;
-    for(int i=0;i<n;i++)buk[rnk[i]=lower_bound(rp,rp+m,s[i])-rp]++;
-    for(int i=1;i<m;i++)buk[i]+=buk[i-1];
-    for(int i=n-1;i>=0;i--)SA[--buk[rnk[i]]]=i;
-    int p=m;
-    for(int j=1;p<n;j*=2,m=p){
-        p=0;
-        for(int i=n-j;i<n;i++)rp[p++]=i;
-        for(int i=0;i<n;i++)if(SA[i]>=j)rp[p++]=SA[i]-j;
-        for(int i=0;i<m;i++)buk[i]=0;
-        for(int i=0;i<n;i++)buk[rnk[rp[i]]]++;
-        for(int i=1;i<m;i++)buk[i]+=buk[i-1];
-        for(int i=n-1;i>=0;i--)SA[--buk[rnk[rp[i]]]]=rp[i];
-        swap(rnk,rp);
-        p=1;
-        rnk[SA[0]]=0;
-        for(int i=1;i<n;i++)
-            rnk[SA[i]]=(rp[SA[i]]==rp[SA[i-1]]&&rp[SA[i]+j]==rp[SA[i-1]+j])?p-1:p++;
-        }
-    n--; 
-    for(int i=0;i<n;i++)
-        SA[i]=SA[i+1]; 
-    }
-int rnk[N];   // 各個後綴對應的名次
-int H[N];   // longest common prefix array
-void mak_H(){
-    // 也就是各個後綴在sa當中的索引值
-    // 也就是sa的反函數
-    for(int i=0;i<n;i++)
-        rnk[SA[i]]=i;
-    for (int i=0,lcp=0;i<n;i++)
-        if(rnk[i]==0)
-            H[0]=0;
-        else{
-            int j=SA[rnk[i]-1];
-            if(lcp>0)lcp--;
-            while(s[i+lcp]==s[j+lcp])lcp++;
-            H[rnk[i]]=lcp;
-            }
-    }
+const int MAX = 1020304;
+int ct[MAX], he[MAX], rk[MAX], sa[MAX], tsa[MAX], tp[MAX][2];
 
-//Suﬃx Array (SAIS TWT514)
+void suffix_array(char *ip){
+
+	int len = strlen(ip);
+	int alp = 256;
+
+	memset(ct, 0, sizeof(ct));
+	for(int i=0;i<len;i++) ct[ip[i]+1]++;
+	for(int i=1;i<alp;i++) ct[i]+=ct[i-1];
+	for(int i=0;i<len;i++) rk[i]=ct[ip[i]];
+
+	for(int i=1;i<len;i*=2){
+		for(int j=0;j<len;j++){
+			if(j+i>=len) tp[j][1]=0;
+			else tp[j][1]=rk[j+i]+1;
+			
+			tp[j][0]=rk[j];
+		}
+		memset(ct, 0, sizeof(ct));
+		for(int j=0;j<len;j++) ct[tp[j][1]+1]++;
+		for(int j=1;j<len+2;j++) ct[j]+=ct[j-1];
+		for(int j=0;j<len;j++) tsa[ct[tp[j][1]]++]=j;
+
+		memset(ct, 0, sizeof(ct));
+		for(int j=0;j<len;j++) ct[tp[j][0]+1]++;
+		for(int j=1;j<len+1;j++) ct[j]+=ct[j-1];
+		for(int j=0;j<len;j++) sa[ct[tp[tsa[j]][0]]++]=tsa[j];
+
+		rk[sa[0]]=0;
+		for(int j=1;j<len;j++){
+			if( tp[sa[j]][0] == tp[sa[j-1]][0] &&
+				tp[sa[j]][1] == tp[sa[j-1]][1] )
+				rk[sa[j]] = rk[sa[j-1]];
+			else
+				rk[sa[j]] = j;
+		}
+	}
+
+	for(int i=0,h=0;i<len;i++){
+		if(rk[i]==0) h=0;
+		else{
+			int j=sa[rk[i]-1];
+			h=max(0,h-1);
+			for(;ip[i+h]==ip[j+h];h++);
+		}
+		he[rk[i]]=h;
+	}
+}
+
+//Suffix Array (SAIS TWT514)
 struct SA{
     #define REP(i,n) for ( int i=0; i<int(n); i++ )
     #define REP1(i,a,b) for ( int i=(a); i<=int(b); i++ )
@@ -531,7 +443,7 @@ void split(ptr now,int k,ptr &a,ptr &b){
     else
         b=now,b->push(),split(now->l,k,a,b->l),b->pull();
     }
-void split_kth(ptr now,int k,ptr &a,ptr &b){
+void split_kth(ptr now,int k,ptr &a,ptr &b){ //切k個元素下來
     if(now==nil)a=b=nil;
     else if(now->l->sz<k)
         a=now,a->push(),split_kth(now->r,k-now->l->sz,a->r,b),a->pull();
@@ -589,38 +501,6 @@ struct treap{
         }
     };
 
-//二分圖匹配 //可用Dinic，時間複雜度更低O(EsqrtV)
-bool mp[1005][1005];
-int go[1005];
-bool used[1005];
-int main(){
-    int n,k,T=0;
-    while(~scanf("%d%d",&n,&k),n||k){T++;
-        memset(mp,0,sizeof(mp));
-        for(int i=0;i<k;i++){
-            int x,y;
-            scanf("%d%d",&x,&y);
-            mp[x-1][y-1]=1;
-            }
-        memset(go,-1,sizeof(go));
-        int ans=0;
-        for(int i=0;i<n;i++){
-            memset(used,0,sizeof(used));
-            function<bool(int)>F=[&](int now)->bool{
-                for(int j=0;j<n;j++)
-                    if(mp[now][j] && !used[j]++ && (!~go[j]||F(go[j])) ){
-                        go[j]=now;
-                        return 1;
-                        }
-                return 0;
-                };
-            ans+=F(i);
-            }
-        printf("Case #%d:%d\n",T,ans);
-        }
-    return 0;
-    }
-
 //一般圖最大匹配
 #define MAXN 505
 vector<int>g[MAXN];//用vector存圖 
@@ -676,210 +556,6 @@ int blossom(){
 		if(!match[i]&&bfs(i))++ans;
 	return ans;
     }
-
-//矩陣運算套裝
-template<unsigned int N,typename T=int>
-struct cub{
-    T a[N][N];
-    int n,m; 
-    cub(int _n,int _m,T k=0){
-        n=_n;
-        m=_m;
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                a[i][j]=0;
-        if(k)
-            for(int i=0;i<n;i++)
-                a[i][i]=k;
-        }
-    cub(T k=0){
-        n=N;
-        m=N;
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                a[i][j]=0;
-        if(k)
-            for(int i=0;i<n;i++)
-                a[i][i]=k;
-        }
-    void rebuild(int _n=0,int _m=0,T k=0){
-        n=_n;
-        m=_m;
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                a[i][j]=0;
-        if(k)
-            for(int i=0;i<n;i++)
-                a[i][i]=k;
-        }
-    inline T* operator [](int x){
-        return a[x];
-        }
-    cub operator +(cub b){
-        if(n!=b.n||m!=b.m)throw("+ error");
-        cub c(n,m);
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                c[i][j]=a[i][j]+b[i][j];
-        return c;
-        }
-    cub operator -(cub b){
-        if(n!=b.n||m!=b.m)throw("- error");
-        cub c(n,m);
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                c[i][j]=a[i][j]-b[i][j];
-        return c;
-        }
-    cub operator *(cub b){
-        if(m!=b.n)throw("* error");
-        cub c(n,b.m);
-        for(int i=0;i<n;i++)
-            for(int j=0;j<b.m;j++)
-                for(int k=0;k<m;k++)
-                    c[i][j]+=a[i][k]*b[k][j];
-        return c;
-        }
-    cub operator *(T b){
-        cub c(n,m);
-        for(int i=0;i<n;i++)
-            for(int j=0;j<m;j++)
-                c[i][j]=a[i][j]*b;
-        return c;
-        }
-    cub del(int x,int y){
-        if(x<0||y<0||x>=n||y>=m)throw("del error");
-        cub c(n-1,m-1);
-        for(int i=0,ci=0;i<n;i++,ci++){
-            if(i==x){ci--;continue;}
-            for(int j=0,cj=0;j<m;j++,cj++){
-                if(j==y){cj--;continue;}
-                c[ci][cj]=a[i][j];
-                }
-            }
-        return c;
-        }
-    T det(){
-        if(n!=m)throw("det error");
-        if(n==1)return a[0][0];
-        if(n==2)return a[0][0]*a[1][1]-a[0][1]*a[1][0];
-        T ret=0;
-        int t=1;
-        for(int i=0;i<n;i++){
-            ret+=t*a[0][i]*del(0,i).det();
-            t=-t;
-            }
-        return ret;
-        }
-    cub gus(){
-        if(n>m)throw("gus error");
-        cub mtx=*this; 
-        for(int i=0;i<n;i++){
-            for(int j=i;j<n;j++)
-                if(mtx[j][i].p){
-                    for(int k=0;k<m;k++)
-                        swap(mtx[i][k],mtx[j][k]);
-                    break;
-                    }
-            if(!mtx[i][i].p)continue;
-            for(int k=n;k>=i;k--)
-                mtx[i][k]=mtx[i][k]/mtx[i][i];
-            for(int j=i+1;j<n;j++)
-                for(int k=m-1;k>=i;k--)
-                    mtx[j][k]=mtx[j][k]-mtx[i][k]*mtx[j][i];
-            }
-        for(int i=n-1;i>=0;i--){
-            for(int j=i-1;j>=0;j--){
-                for(int k=n;k<m;k++)
-                    mtx[j][k]=mtx[j][k]-mtx[i][k]*mtx[j][i];
-                mtx[j][i]=0;
-                }
-            }
-        return mtx;
-        }
-    cub Tr(){
-        cub c(m,n);
-        for(int i=0;i<n;i++){
-            for(int j=0;j<m;j++){
-                c[j][i]=a[i][j];
-                }
-            }
-        return c;
-        }
-    cub operator -(){
-        if(!det())throw("~ error");
-        cub d(n,n);
-        for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
-                d[i][j]=del(j,i).det()*(((i+j)&1)?-1:1);
-                }
-            }
-        return d;
-        }
-    cub operator ~(){
-        return (-*this)*(1.0/det());
-        }
-    cub operator /(cub b){
-        return (*this*(-b));//*b.det();
-        }
-    cub operator %(cub b){
-        return ((-*this)*b);//*det();
-        }
-    cub operator ^(long long int b){
-        cub ret(n,m,1),now=*this;
-        while(b){
-            if(b&1)ret=ret*now;
-            now=now*now;
-            b>>=1;
-            }
-        return ret;
-        }
-    void print(){
-        printf("[ ");
-        for(int i=0;i<n;i++){
-            if(i)printf("; ");
-            for(int j=0;j<m;j++)
-                printf("%d ",a[i][j]);
-            }
-        printf("]\n");
-        }
-    };
-
-//有理數套裝
-struct lnum{
-    long long int p,q;
-    lnum(){q=1;p=0;}
-    lnum(long long int x){q=1;p=x;}
-    lnum(long long int _p,long long int _q){q=_q;p=_p;}
-    void print(){
-        long long int g=__gcd(p,q);
-        if(!g)g=1;
-        p/=g,q/=g;
-        if(q<0)q*=-1,p*=-1;
-        if(q==1||p==0)
-            printf("%lld",p);
-        else
-            printf("%lld/%lld",p,q);
-        }
-    lnum operator=(int x){q=1;p=x;}
-    lnum operator+(lnum b){
-        long long int g=__gcd(q,b.q);
-        return lnum(p*b.q/g+b.p*q/g,q*b.q/g);
-        }
-    lnum operator-(lnum b){
-        long long int g=__gcd(q,b.q);
-        return lnum(p*b.q/g-b.p*q/g,q*b.q/g);
-        }
-    lnum operator*(lnum b){
-        long long int g=__gcd(p*b.p,q*b.q);
-        if(!g)g=1;
-        if(p==0||b.p==0)return lnum(0,1);
-        return lnum(p*b.p/g,q*b.q/g);
-        }
-    lnum operator/(lnum b){
-        return (*this)*lnum(b.q,b.p);
-        }
-    };
 
 //KM
 int mp[605][605],go[605],lx[605],ly[605],sl[605];
@@ -954,7 +630,7 @@ int main(){
     }
 
 
-//引用技數指針(待驗證)
+//引用計數指針(待驗證)
 struct nod;
 struct ptr{
     nod *p;
@@ -1128,7 +804,7 @@ int main(){
     printf("%.3f\n",sqrt(c.s));
     }
 
-//Dinic Flow O(V^2*E)
+//Dinic Flow O(V^2*E) /* 0-base */
 void add(int a, int b, int c){
     nod[a].push_back(pr(par(b,c),nod[b].size()));
     nod[b].push_back(pr(par(a,0),nod[a].size()-1));
@@ -1258,156 +934,6 @@ int bounded_flow(int s,int t){
     return ans;
     }
 
-//link-cut-treap O(lg^2 N)
-typedef struct node* ptr;
-ptr nil=NULL;
-struct node{
-    ptr l,r,fa,sl;
-    unsigned int sz;
-    bool sptag,rev;
-    int val,sig;
-    bool zer;
-    node(int _val=0,int _sig=0,ptr _fa=nil):l(nil),r(nil),fa(_fa),sl(nil),sz(1),sptag(0),rev(0),val(_val),sig(_sig),zer(0){}
-    inline void chrev(){
-        if(rev){
-            rev=0;
-            swap(l,r);
-            if(l)l->rev^=1;
-            if(r)r->rev^=1;
-            }
-        }
-    inline void push(){
-        chrev();
-        fa=nil;
-        if(zer){
-            zer=0;
-            if(l)l->zer=1,l->val=0,l->sig=0;
-            if(r)r->zer=1,r->val=0,r->sig=0;
-            }
-        }
-    inline void pull(){
-        sz=(l?l->sz:0)+(r?r->sz:0)+1;
-        sig=(l?l->sig:0)+(r?r->sig:0)+val;
-        if(l)l->fa=this;
-        if(r)r->fa=this;
-        }
-    ptr top(){
-        ptr now=this;
-        if(fa)now=fa->top();
-        chrev();
-        return now;
-        }
-    ptr left(){
-        chrev();
-        if(l)return l->left();
-        return this;
-        }
-    ptr right(){
-        chrev();
-        if(r)return r->right();
-        return this;
-        }
-    ptr next(){
-        top();
-        if(r)return r->left();
-        ptr now=this;
-        while(now->fa)
-            if(now->fa->l==now)return now->fa;
-            else now=now->fa;
-        return nil;
-        }
-    ptr pre(){
-        top();
-        if(l)return l->right();
-        ptr now=this;
-        while(now->fa)
-            if(now->fa->r==now)return now->fa;
-            else now=now->fa;
-        return nil;
-        }
-    };
-ptr merge(ptr a,ptr b){
-    static unsigned int S=rand();
-    if(!a)return b;if(!b)return a;
-    if((S++)%(a->sz+b->sz)<a->sz){
-        a->push();
-        a->r=merge(a->r,b);
-        a->pull();
-        return a;
-        }
-    else{
-        b->push();
-        b->l=merge(a,b->l);
-        b->pull();
-        return b;
-        }
-    }
-void split(ptr now,ptr &a,ptr &b){
-    if(!now)a=b=nil;
-    else if(!now->sptag){
-        a=now;
-        a->push();
-        split(now->r,a->r,b);
-        a->pull();
-        }
-    else{
-        now->sptag=0;
-        b=now;
-        b->push();
-        split(now->l,a,b->l);
-        b->pull();
-        }
-    }
-void split(ptr now,ptr cut,ptr &a,ptr &b){
-    if(cut){
-        cut->sptag=1;
-        while(cut!=now){
-            if(cut->fa->l==cut)
-                cut->fa->sptag=1;
-            cut=cut->fa;
-            }
-        split(now,a,b);
-        }
-    else a=now,b=nil;
-    }
-void cuthl(ptr now){
-    ptr rot=now->top(),a,b;
-    split(rot,now->next(),a,b);
-    if(b)b->left()->sl=a->right();
-    }
-ptr access(ptr now){
-    cuthl(now);
-    ptr rot=now->top();
-    now=rot->left();
-    if(now->sl)
-        return merge(access(now->sl),rot);
-    return rot;
-    }
-ptr root(ptr now){
-    access(now);
-    return now->top()->left();
-    }
-void chroot(ptr now){
-    ptr p=access(now);
-    swap(p->left()->sl,p->right()->sl);
-    p->rev^=1;
-    }
-void cut(ptr x,ptr y){
-    ptr a,b;
-    if(access(x),x->pre()==y){
-        split(x,x,a,b);
-        b->left()->sl=nil;
-        }
-    else if(access(y),y->pre()==x){
-        split(y,y,a,b);
-        b->left()->sl=nil;
-        }
-    }
-void join(ptr now,ptr to){
-    //if(now!=root(now))throw("error");
-    now->sl=to;
-    }	
-
 //tarjan
 #define N 100005
 int mod = 1000000007 ;
@@ -1444,7 +970,7 @@ int dfs(int u,int fa){
 
 //重心剖分
 vector<par>nod[100005];
-vector<int>gnod[100005];
+//vector<int>gnod[100005];
 int qu[100005],fa[100005];
 int us[100005];
 int qf=0,qe=0;
@@ -1463,9 +989,11 @@ void bfs(int now){
             }
         }
     }
-gp_hash_table<int,long long int> dis[100005];
-vector<int>way[100005];
-int fun(int now){
+//gp_hash_table<int,long long int> dis[100005];
+long long int dis[20][100005];
+int way[100005][20];
+int wlen[100005];
+int fun(int now,int lv=0){
     bfs(now);
     for(int i=qe-1;i>=0;i--)
         if(~fa[qu[i]])
@@ -1476,63 +1004,91 @@ int fun(int now){
             mi=max(msz[qu[i]],qe-sz[qu[i]]),g=qu[i];
     bfs(g);
     for(int i=0;i<qe;i++)
-        way[qu[i]].push_back(g);
+        way[qu[i]][lv]=g,wlen[qu[i]]=lv+1;
     for(int i=0;i<qe;i++)
         for(auto &x:nod[qu[i]])
             if(x.f!=fa[qu[i]]&&!us[x.f])
-                dis[g][x.f]=dis[g][qu[i]]+x.s;
+                dis[lv][x.f]=dis[lv][qu[i]]+x.s;
     us[g]=1;
     for(auto &x:nod[g])
         if(!us[x.f])
-            gnod[g].push_back(fun(x.f));
+            fun(x.f,lv+1);
+            //gnod[g].push_back(fun(x.f,lv+1));
     return g;
     }
 long long int sig[100005];
 int cnt[100005];
-gp_hash_table<int,long long int> sg2[100005];
-gp_hash_table<int,int> ct2[100005];
+long long int sg2[20][100005];
+int ct2[20][100005];
 void add(int to){
-    int sz=way[to].size();
+    int sz=wlen[to];
     for(int i=0;i<sz;i++){
         int x=way[to][i];
-        sig[x]+=dis[x][to];
+        sig[x]+=dis[i][to];
         cnt[x]++;
         if(i==sz-1)break;
-        sg2[x][way[to][i+1]]+=dis[x][to];
-        ct2[x][way[to][i+1]]++;
+        sg2[i][way[to][i+1]]+=dis[i][to];
+        ct2[i][way[to][i+1]]++;
         }
     }
 long long int qry(int to){
     long long int ret=sig[to];
-    int sz=way[to].size();
+    int sz=wlen[to];
     for(int i=0;i<sz-1;i++){
         int x=way[to][i],y=way[to][i+1];
-        ret+=sig[x]-sg2[x][y]+1ll*(cnt[x]-ct2[x][y])*dis[x][to];
+        ret+=sig[x]-sg2[i][y]+1ll*(cnt[x]-ct2[i][y])*dis[i][to];
         }
     return ret;
     }
-int on[100005];
-int main(){
-    int n,q;
-    scanf("%d%d",&n,&q);
-    for(int i=1;i<n;i++){
-        int a,b,c;
-        scanf("%d%d%d",&a,&b,&c);
-        nod[a].push_back(par(b,c));
-        nod[b].push_back(par(a,c));
+void clr(int now){
+    int sz=wlen[now];
+    for(int i=0;i<sz;i++){
+        int x=way[now][i];
+        sig[x]=0;
+        cnt[x]=0;
+        if(i==sz-1)break;
+        sg2[i][way[now][i+1]]=0;
+        ct2[i][way[now][i+1]]=0;
         }
-    int g=fun(0);
-    while(q--){
-        int m,l;
-        scanf("%d%d",&m,&l);
-        if(m==1){
-            if(on[l])
-                continue;
-            on[l]=1;
-            add(l);
+    }
+int inp[100005];
+int main(){
+    int t;
+    scanf("%d",&t);
+    while(t--){
+        int n,q;
+        scanf("%d%d",&n,&q);
+        for(int i=0;i<n;i++){
+            us[i]=0,
+            fa[i]=0,
+            sz[i]=0,
+            msz[i]=0,
+            nod[i].clear(),
+            wlen[i]=0;
+            for(int j=0;j<20;j++)
+                dis[j][i]=0;
             }
-        else
-            printf("%lld\n",qry(l));
+        for(int i=1;i<n;i++){
+            int a,b;
+            scanf("%d%d",&a,&b);a--;b--;
+            nod[a].push_back(par(b,1));
+            nod[b].push_back(par(a,1));
+            }
+        int g=fun(0);
+        while(q--){
+            int k;
+            scanf("%d",&k);
+            for(int i=0;i<k;i++)
+                scanf("%d",&inp[i]),inp[i]--;
+            long long int ans=0;
+            for(int i=0;i<k;i++){
+                ans+=qry(inp[i]);
+                add(inp[i]);
+                }
+            for(int i=0;i<k;i++)
+                clr(inp[i]);
+            printf("%lld\n",ans*2);
+            }
         }
     return 0;
     }
@@ -1805,48 +1361,6 @@ int main(){
     return 0;
     }
 
-
-//Modable Int
-struct Int{
-    int num;
-    Int(long long int x):num((x%MOD+MOD)%MOD){}
-    Int(int x):num((x%MOD+MOD)%MOD){}
-    Int():num(0){}
-    explicit operator int&(){return num;}
-    Int& operator+=(Int x){
-        num=(num+x.num)%MOD;
-        return *this;
-        }
-    Int operator+(Int x){
-        Int ret((num+x.num)%MOD);
-        return ret;
-        }
-    Int& operator-=(Int x){
-        num=((num-x.num)%MOD+MOD)%MOD;
-        return *this;
-        }
-    Int operator-(Int x){
-        Int ret(((num-x.num)%MOD+MOD)%MOD);
-        return ret;
-        }
-    Int& operator*=(Int x){
-        num=(1ll*num*x.num)%MOD;
-        return *this;
-        }
-    Int operator*(Int x){
-        Int ret((1ll*num*x.num)%MOD);
-        return ret;
-        }
-    };
-
-//某輸入輸出優化
-#define qbs 10000100
-inline char getc(){ static char buf[qbs];static unsigned int q=qbs; if(qbs==q) fread(buf,qbs,1,stdin),q=0; return buf[q++]; }
-inline void readuint(unsigned int& a){ a=0; char p=getc(); while(p>'9' || p<'0') p=getc(); while(p<='9'&&p>='0') a=a*10+p-'0',p=getc(); }
-inline void readuint(unsigned long long& a){ a=0; char p=getc(); while(p>'9' || p<'0') p=getc(); while(p<='9'&&p>='0') a=a*10+p-'0',p=getc(); }
-inline void putc(char p,bool e=0){ static char buf[qbs+10];static unsigned int q=0; if(~p) buf[q++]=p; if((e&&q) || qbs==q) fwrite(buf,q,1,stdout),q=0; }
-inline void printuint(unsigned int a){if(a>=10) printuint(a/10); putc(a%10+'0');}
-inline void printuint(unsigned long long a){if(a>=10) printuint(a/10); putc(a%10+'0');}
 
 //黑魔法樹(可split/join/update)
 #pragma GCC optimize ("O3")
@@ -2183,48 +1697,6 @@ bool isin(Line l0, Line l1, Line l2) {
 //遍歷子集
 for(int j=c;j;j=c&j-1);
 
-//zkw
-void build(){
-    for(M=1;M<=n+1;M<<=1);
-    for(int i=1;i<=n;i++)
-        zkw[id[i].f+M]=one<<col[i];
-    for(int i=M-1;i;i--)
-        zkw[i]=zkw[i<<1]^zkw[i<<1|1];
-    }
-void update(int x,__int128 val){
-    zkw[x+=M]^=val;
-    for(x>>=1;x>=1;x>>=1)
-        zkw[x]=zkw[x<<1]^zkw[x<<1|1];
-    }
-__int128 qry(int l,int r){
-    l=l+M-1,r=r+M+1;
-    __int128 ans=0;
-    for(;l^r^1;l>>=1,r>>=1){
-        if(~l&1)ans^=zkw[l^1];
-        if(r&1) ans^=zkw[r^1];
-        }
-    return ans;
-    }
-
-//KMP
-#define N 1000000 + 100
-char str[N];
-int next[N];
-void get_next(int m)
-{
-   int j ,k;
-   j = 0 ,k = -1;
-   next[0] = -1;
-   while(j < m)
-   {
-      if(k == -1 || str[j] == str[k])
-      next[++j] = ++k;
-      else
-      k = next[k];
-   }
-   return ;
-}
-
 //DominatorTree::build(int n,int s,vector<int> nod[],vector<int> rnod[],vector<int> result[])
 const int N=200000+10;
 namespace DominatorTree{
@@ -2391,23 +1863,6 @@ public:     // P must be prime, and exist k,q that P=q*2^k+1
         return u;
         }
     };
-
-//rk-hash
-const int N=100005;
-char s[N];
-const int MOD=1000000007;
-const int A=100001;
-int HS[N],P[N];
-void mak_HS(int n){
-    HS[0]=0;
-    P[0]=1;
-    for(int i=1;i<=n;i++)
-        HS[i]=((1ll*HS[i-1]*A)%MOD+s[i-1])%MOD,
-        P[i]=(1ll*P[i-1]*A)%MOD;
-    }
-int hsh(int l,int r){
-    return (0LL+HS[r+1]-(1ll*HS[l]*P[r-l+1])%MOD+MOD)%MOD;
-    }
 
 //回文樹
 struct palindromic_tree{
@@ -2668,35 +2123,6 @@ int main(int argc, char** argv){
             } 
         } 
     }
-
-//SPFA 負環
-bool loop(double k,int n){
-    static int us[705];
-    static double val[705];
-    static bool iq[705];
-    for(int i=0;i<=n;i++)
-        us[i]=0,val[i]=INFINITY,iq[i]=false;
-    queue<int>qu;
-    qu.push(0);
-    val[0]=0;
-    iq[0]=true;
-    while(!qu.empty()){
-        int now=qu.front();
-        qu.pop();
-        iq[now]=false;
-        for(par x:nod[now]){
-            if(val[x.f]>val[now]+x.s+k){
-                val[x.f]=val[now]+x.s+k;
-                if(!iq[x.f]){
-                    if(++us[x.f]>=n)return true;
-                    iq[x.f]=true;
-                    qu.push(x.f);
-                    }
-                }
-            }
-        }
-    return false;
-    }
 
 //Fast Linear Recurrence
 ll n,m,dp[N+N]; 
@@ -3681,33 +3107,33 @@ temT struct node{
     void pull(){sz=l->sz+r->sz+1;if(l!=nil)l->fa=this;if(r!=nil)r->fa=this;}
     ptr top(){
         ptr now=this;
-        if(fa!=nil)now=fa->top();
+        if(fa)now=fa->top();
         return now;
-    }
+        }
     ptr left(){
-        if(l!=nil)return l->left();
+        if(l)return l->left();
         return this;
-    }
+        }
     ptr right(){
-        if(r!=nil)return r->right();
+        if(r)return r->right();
         return this;
-    }
+        }
     ptr next(){
-        if(r!=nil)return r->left();
+        if(r)return r->left();
         ptr now=this;
-        while(now->fa!=nil)
+        while(now->fa)
             if(now->fa->l==now)return now->fa;
             else now=now->fa;
         return nil;
-    }
+        }
     ptr pre(){
-        if(l!=nil)return l->right();
+        if(l)return l->right();
         ptr now=this;
-        while(now->fa!=nil)
+        while(now->fa)
             if(now->fa->r==now)return now->fa;
             else now=now->fa;
         return nil;
-    }
+        }
     };
 temT node<T> node<T>::nil_obj(nna<T>::obj);
 temT ptr<T> node<T>::nil=&node<T>::nil_obj;
@@ -4015,7 +3441,7 @@ void Bron_Kerbosch()
 	cout << "極大團總共" << c << "個";
 }
 
-//畫分樹
+//劃分樹
 #include "cstdio"
 #include "algorithm"
 #include "cstring"
