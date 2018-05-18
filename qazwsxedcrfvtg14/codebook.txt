@@ -3410,35 +3410,36 @@ int main(){
     }
 
 //最大團
-int adj[30];	// adjacency matrix
-int c = 0;		// count maximal clique
+int128 one = 1;
+int128 linkto[MXN];
 
-void backtrack(int P, int X)
-{
-	if (P == 0 && X == 0) {c++; return;}
-
-	int p = __builtin_ctz(P | X);
-	int Q = P & ~adj[p];
-
-	while (Q)
-	{
-		int i = __builtin_ctz(Q);
-		backtrack(P & adj[i], X & adj[i]);
-		Q &= ~(1<<i);
-		P &= ~(1<<i);
-		X |= (1<<i);
-	}
+int popcount(int128 val){
+    return __builtin_popcountll(val >> 50)
+    + __builtin_popcountll(val & ((one << 50) - 1));
 }
 
-void Bron_Kerbosch()
-{
-	// remove loop
-	for (int i=0; i<N; ++i)
-		adj[i] &= ~(1<<i);
+int lowbit(int128 val){
+    if((val & ((one << 50) - 1)) == 0)
+        return __builtin_ctzll(val >> 50) + 50;
+    return __builtin_ctzll(val & ((one << 50) - 1));
+}
 
-	c = 0;
-	backtrack((1<<N)-1, 0);
-	cout << "極大團總共" << c << "個";
+/* candi should be sorted from big deg. to small deg. */
+int ans;
+void maxclique(int elem_num, int128 candi){
+    if(elem_num > ans) ans = elem_num;
+    int potential = elem_num + popcount(candi);
+    if(potential <= ans) return;
+    int pivot = lowbit(candi);
+    int128 smaller_candi = candi & (~linkto[pivot]);
+    while(smaller_candi && potential > ans){
+        int next = lowbit(smaller_candi);
+        candi ^= one << next;
+        smaller_candi ^= one << next;
+        potential --;
+        if(next == pivot || (smaller_candi & linkto[next]))
+            maxclique(elem_num + 1, candi & linkto[next]);
+    }
 }
 
 //劃分樹
@@ -3740,4 +3741,10 @@ void Zval(const char *s, int len, int *z) {
 		while (s[i + z[i]] == s[z[i]]) z[i] ++;
 		if (i+z[i] > b+z[b]) b=i;
 	}
+}
+
+const int seed=7122;
+mt19937 rng(seed);
+int randint(int lb,int ub){
+	return uniform_int_distribution<int>(lb,ub)(rng);
 }
