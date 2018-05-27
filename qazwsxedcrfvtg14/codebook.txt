@@ -805,38 +805,55 @@ int main(){
     }
 
 //Dinic Flow O(V^2*E) /* 0-base */
-void add(int a, int b, int c){
-    nod[a].push_back(pr(par(b,c),nod[b].size()));
-    nod[b].push_back(pr(par(a,0),nod[a].size()-1));
-    }
-int d[1005];
-int BFS(int s,int t){
-    memset(d,0,sizeof(d));d[s]=1;
-    queue<int>qu;qu.push(s);
-    while(!qu.empty()){
-        int now=qu.front();qu.pop();
-        if(now==t)return d[t];
-        for(pr x:nod[now])
-            if(x.f.s&&!d[x.f.f])
-                d[x.f.f]=d[now]+1,qu.push(x.f.f);
+struct Dinic{
+  static const int MXN = 10000;
+  struct Edge{ int v,f,re; };
+  int n,s,t,level[MXN];
+  vector<Edge> E[MXN];
+  void init(int _n, int _s, int _t){
+    n = _n; s = _s; t = _t;
+    for (int i=0; i<n; i++) E[i].clear();
+  }
+  void add_edge(int u, int v, int f){
+    E[u].PB({v,f,SZ(E[v])});
+    E[v].PB({u,0,SZ(E[u])-1});
+  }
+  bool BFS(){
+    for (int i=0; i<n; i++) level[i] = -1;
+    queue<int> que;
+    que.push(s);
+    level[s] = 0;
+    while (!que.empty()){
+      int u = que.front(); que.pop();
+      for (auto it : E[u]){
+        if (it.f > 0 && level[it.v] == -1){
+          level[it.v] = level[u]+1;
+          que.push(it.v);
         }
-    return 0;
+      }
     }
-int DFS(int now,int fl,int t){
-    if(now==t)return fl;
-    int cost=0,f;
-    for(pr &x:nod[now])
-        if(x.f.s&&d[now]+1==d[x.f.f]&&fl>cost)
-            if(f=DFS(x.f.f,min(fl-cost,x.f.s),t))
-                x.f.s-=f,nod[x.f.f][x.s].f.s+=f,cost+=f;
-    return cost;
+    return level[t] != -1;
+  }
+  int DFS(int u, int nf){
+    if (u == t) return nf;
+    int res = 0;
+    for (auto &it : E[u]){
+      if (it.f > 0 && level[it.v] == level[u]+1){
+        int tf = DFS(it.v, min(nf,it.f));
+        res += tf; nf -= tf; it.f -= tf;
+        E[it.v][it.re].f += tf;
+        if (nf == 0) return res;
+      }
     }
-int dinic(int s,int t){
-    int flow=0;
-    while(BFS(s,t))
-        flow+=DFS(s,0x7fffffff,t);
-    return flow;
-    }
+    if (!res) level[u] = -1;
+    return res;
+  }
+  int flow(int res=0){
+    while ( BFS() )
+      res += DFS(s,2147483647);
+    return res;
+  }
+}flow;
 
 //Flow O(V^3)
 int mp[N][N]; //this is input
